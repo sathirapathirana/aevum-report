@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/report/:id", "destination": "/index.html" },
+    { "source": "/demo", "destination": "/index.html" }
+  ]
+}
