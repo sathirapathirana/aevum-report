@@ -1,7 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/report/:id", "destination": "/report.html" },
-    { "source": "/demo",       "destination": "/report.html" },
-    { "source": "/brands",     "destination": "/brands.html" }
-  ]
-}
