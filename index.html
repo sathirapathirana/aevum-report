@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aevum Protocol — Science for Better Aging</title>
+  <meta name="description" content="Personalised longevity medicine and skin science. Know your biological age. Change it." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --sage:        #8B9068;
+      --sage-deep:   #6B7050;
+      --sage-light:  #B5BC9A;
+      --sage-wash:   #EDEEE8;
+      --cream:       #F5F4F0;
+      --cream-dark:  #ECEAE4;
+      --white:       #FFFFFF;
+      --charcoal:    #2C2C2C;
+      --mid:         #6A6A6A;
+      --line:        #D8D9D2;
+      --gold:        #C9A84C;
+      --gold-light:  #E8D5A0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--cream);
+      color: var(--charcoal);
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(245, 244, 240, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 15px;
+      letter-spacing: 0.35em;
+      color: var(--sage);
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--mid);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--sage); }
+
+    .nav-cta {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      background: var(--sage);
+      color: var(--white) !important;
+      padding: 8px 18px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-cta:hover { background: var(--sage-deep) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 24px 60px;
+      padding-top: 60px;
+      background: var(--sage);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(120px, 35vw, 320px);
+      font-weight: 300;
+      color: rgba(255,255,255,0.04);
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 560px;
+    }
+
+    .hero-eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(42px, 10vw, 72px);
+      color: var(--white);
+      line-height: 1.05;
+      margin-bottom: 24px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero-body {
+      font-size: 14px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.75;
+      max-width: 380px;
+      margin-bottom: 36px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--white);
+      color: var(--sage-deep);
+      text-decoration: none;
+      padding: 14px 28px;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-weight: 400;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-primary:hover { background: var(--cream); }
+
+    .btn-secondary {
+      display: inline-block;
+      border: 1px solid rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 14px 28px;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      font-weight: 300;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-secondary:hover { border-color: rgba(255,255,255,0.7); color: var(--white); }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 28px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hero-scroll span {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      writing-mode: vertical-rl;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+      animation: scrollDown 2s ease-in-out infinite;
+    }
+    @keyframes scrollDown {
+      0%, 100% { transform: scaleY(1); opacity: 0.5; }
+      50% { transform: scaleY(0.6); opacity: 1; }
+    }
+
+    /* ── SECTION COMMONS ── */
+    section { padding: 72px 24px; }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(32px, 6vw, 48px);
+      color: var(--charcoal);
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+
+    .section-title em { font-style: italic; color: var(--sage); }
+
+    .divider {
+      width: 36px;
+      height: 1px;
+      background: var(--sage-light);
+      margin-bottom: 32px;
+    }
+
+    /* ── PILLARS ── */
+    .pillars { background: var(--white); }
+
+    .pillars-intro {
+      max-width: 480px;
+      margin-bottom: 48px;
+    }
+
+    .pillars-intro p {
+      font-size: 15px;
+      color: var(--mid);
+      line-height: 1.75;
+    }
+
+    .pillar-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1px;
+      background: var(--line);
+    }
+
+    .pillar {
+      background: var(--white);
+      padding: 32px 24px;
+    }
+
+    .pillar-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px;
+      font-weight: 300;
+      color: var(--sage-wash);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+
+    .pillar-title {
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      margin-bottom: 10px;
+    }
+
+    .pillar-body {
+      font-size: 13px;
+      color: var(--mid);
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .pillar-link {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pillar-link::after { content: '→'; }
+
+    /* ── ASSESSMENT BAND ── */
+    .assessment-band {
+      background: var(--charcoal);
+      text-align: center;
+      padding: 64px 24px;
+    }
+
+    .assessment-band .eyebrow { color: rgba(255,255,255,0.35); }
+
+    .assessment-band .section-title {
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .assessment-band p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      max-width: 320px;
+      margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+
+    .btn-gold {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--white);
+      text-decoration: none;
+      padding: 16px 36px;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      font-weight: 400;
+      transition: background 0.2s;
+    }
+    .btn-gold:hover { background: #b8932a; }
+
+    .assessment-note {
+      margin-top: 16px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── SHOP PREVIEW ── */
+    .shop-preview { background: var(--cream); }
+
+    .shop-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .view-all {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .view-all::after { content: '→'; }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .product-card {
+      background: var(--white);
+      padding: 28px 24px;
+      position: relative;
+    }
+
+    .product-tag {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 12px;
+    }
+
+    .product-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--charcoal);
+      margin-bottom: 4px;
+      line-height: 1.2;
+    }
+
+    .product-sub {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--sage-light);
+      margin-bottom: 16px;
+    }
+
+    .product-contents {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .product-contents li {
+      font-size: 12px;
+      color: var(--mid);
+      padding: 6px 0 6px 14px;
+      border-bottom: 1px solid var(--sage-wash);
+      position: relative;
+    }
+    .product-contents li:last-child { border-bottom: none; }
+    .product-contents li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--sage-light);
+      font-size: 10px;
+    }
+
+    .product-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--sage-wash);
+    }
+
+    .product-price {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px;
+      color: var(--charcoal);
+    }
+
+    .product-price span {
+      font-size: 11px;
+      font-family: 'Jost', sans-serif;
+      color: var(--mid);
+      letter-spacing: 0.1em;
+    }
+
+    .product-cta {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: gap 0.2s;
+    }
+    .product-cta::after { content: '→'; }
+    .product-cta:hover { gap: 10px; }
+
+    .product-consult-note {
+      margin-top: 12px;
+      padding: 10px 12px;
+      background: var(--sage-wash);
+      font-size: 11px;
+      color: var(--sage-deep);
+      line-height: 1.5;
+    }
+
+    /* ── MASK FEATURED ── */
+    .mask-card {
+      background: var(--sage);
+      color: var(--white);
+      padding: 36px 24px;
+      margin-top: 16px;
+    }
+
+    .mask-card .product-tag { color: var(--gold-light); }
+    .mask-card .product-name { color: var(--white); }
+    .mask-card .product-sub { color: rgba(255,255,255,0.4); }
+    .mask-card .product-contents li { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.1); }
+    .mask-card .product-contents li::before { color: var(--gold-light); }
+    .mask-card .product-footer { border-color: rgba(255,255,255,0.15); }
+    .mask-card .product-price { color: var(--white); }
+    .mask-card .product-price span { color: rgba(255,255,255,0.45); }
+    .mask-card .product-cta { color: var(--gold-light); }
+
+    /* ── WHY AEVUM ── */
+    .why { background: var(--white); }
+
+    .trust-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .trust-item {}
+
+    .trust-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .trust-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      margin-bottom: 6px;
+    }
+
+    .trust-body {
+      font-size: 12px;
+      color: var(--mid);
+      line-height: 1.65;
+    }
+
+    /* ── ARTICLES ── */
+    .articles { background: var(--cream-dark); }
+
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 36px;
+      border-top: 1px solid var(--line);
+    }
+
+    .article-item {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line);
+      text-decoration: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .article-cat {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 6px;
+    }
+
+    .article-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      font-weight: 300;
+      color: var(--charcoal);
+      line-height: 1.2;
+      transition: color 0.2s;
+    }
+    .article-item:hover .article-title { color: var(--sage); }
+
+    .article-arrow {
+      color: var(--sage-light);
+      font-size: 18px;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    /* ── INSTAGRAM ── */
+    .instagram { background: var(--white); text-align: center; }
+
+    .insta-handle {
+      font-size: 13px;
+      color: var(--mid);
+      margin-bottom: 32px;
+    }
+
+    .insta-handle a {
+      color: var(--sage);
+      text-decoration: none;
+      letter-spacing: 0.05em;
+    }
+
+    .insta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      margin-bottom: 28px;
+    }
+
+    .insta-placeholder {
+      aspect-ratio: 1;
+      background: var(--sage-wash);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .insta-placeholder span {
+      font-size: 20px;
+      opacity: 0.4;
+    }
+
+    .btn-outline {
+      display: inline-block;
+      border: 1px solid var(--sage);
+      color: var(--sage);
+      text-decoration: none;
+      padding: 12px 28px;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { background: var(--sage); color: var(--white); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--charcoal);
+      padding: 48px 24px 32px;
+    }
+
+    .footer-top {
+      margin-bottom: 40px;
+    }
+
+    .footer-logo {
+      font-family: 'Jost', sans-serif;
+      font-weight: 200;
+      font-size: 16px;
+      letter-spacing: 0.4em;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .footer-tagline {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.2);
+      text-transform: uppercase;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .footer-links a {
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+    .footer-contact {
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-contact-label {
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 12px;
+    }
+
+    .footer-contact a {
+      display: block;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      margin-bottom: 6px;
+      transition: color 0.2s;
+    }
+    .footer-contact a:hover { color: rgba(255,255,255,0.7); }
+
+    .footer-bottom {
+      margin-top: 36px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 10px;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── WHATSAPP FLOAT ── */
+    .whatsapp-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99;
+      background: #25D366;
+      color: white;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      transition: transform 0.2s;
+    }
+    .whatsapp-float:hover { transform: scale(1.08); }
+    .whatsapp-float svg { width: 26px; height: 26px; fill: white; }
+
+    /* ── RESPONSIVE ── */
+    @media (min-width: 640px) {
+      .pillar-grid { grid-template-columns: 1fr 1fr 1fr; }
+      .product-grid { grid-template-columns: 1fr 1fr; }
+      .trust-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    @media (min-width: 900px) {
+      section { padding: 96px 48px; }
+      nav { padding: 0 48px; }
+      .hero { padding: 60px 48px 80px; }
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-line { animation: none; }
+    }
+
+    /* ── VISUAL SPLIT ── */
+    .visual-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 420px;
+    }
+
+    .visual-panel {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: brightness(0.72) saturate(0.85);
+      transition: transform 0.6s ease;
+    }
+
+    .visual-panel:hover img {
+      transform: scale(1.03);
+    }
+
+    .visual-panel-label {
+      position: absolute;
+      bottom: 28px;
+      left: 24px;
+      right: 24px;
+    }
+
+    .visual-panel-eyebrow {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 6px;
+    }
+
+    .visual-panel-title {
+      display: block;
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: 24px;
+      color: var(--white);
+      line-height: 1.2;
+    }
+
+    @media (max-width: 480px) {
+      .visual-split {
+        grid-template-columns: 1fr;
+        height: auto;
+      }
+      .visual-panel {
+        height: 260px;
+      }
+    }
+
+    /* ── BRANDS BAND ── */
+    .brands-band {
+      background: var(--white);
+      padding: 56px 24px;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brands-header {
+      margin-bottom: 32px;
+    }
+
+    .brands-header p {
+      font-size: 13px;
+      color: var(--mid);
+      line-height: 1.7;
+      max-width: 400px;
+      margin-top: 8px;
+    }
+
+    .brands-scroll {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--cream);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .brand-pill:hover {
+      border-color: var(--sage-light);
+      background: var(--sage-wash);
+    }
+
+    .brand-pill-logo {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      filter: grayscale(1) opacity(0.65);
+    }
+
+    .brand-pill-placeholder {
+      width: 28px;
+      height: 28px;
+      background: var(--sage-wash);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--sage);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+
+    .brand-pill-name {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--mid);
+      white-space: nowrap;
+    }
+
+    .brands-more {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sage);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brands-more::after { content: '→'; }
+
+    /* ── PRODUCT IMAGE ── */
+    .product-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+      margin-bottom: 20px;
+    }
+
+    .mask-image {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+      margin-bottom: 20px;
+      filter: brightness(0.85);
+    }
+
+    /* ── MOBILE NAV ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1px;
+      background: var(--sage);
+      transition: all 0.3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--cream);
+      z-index: 99;
+      padding: 32px 24px;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--charcoal);
+      text-decoration: none;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--line);
+      transition: color 0.2s;
+    }
+    .mobile-menu a:hover { color: var(--sage); }
+    .mobile-menu .mobile-cta {
+      margin-top: 24px;
+      background: var(--sage);
+      color: var(--white) !important;
+      padding: 16px 24px;
+      text-align: center;
+      border-bottom: none;
+      letter-spacing: 0.25em;
+    }
+    .mobile-menu .mobile-cta:hover { background: var(--sage-deep); }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">Aevum</a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="learn.html">Learn</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="YOUR_GOOGLE_FORM_LINK" class="nav-cta">Free Assessment</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="shop.html">Shop</a>
+    <a href="learn.html">Learn</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="mobile-cta">Free Assessment</a>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const btn  = document.getElementById('hamburger');
+      menu.classList.toggle('open');
+      btn.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    }
+    // Close menu on link click
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+  </script>
+
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg-text">AGE</div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">Aevum Protocol — Science for Better Aging</p>
+      <h1 class="hero-title">Know your<br>biological age.<br><em>Change it.</em></h1>
+      <p class="hero-body">Most people don't feel their age. They feel older. Aevum Protocol uses longevity science and skin medicine to close that gap — with a personalised plan built around your biology.</p>
+      <div class="hero-actions">
+        <a href="YOUR_GOOGLE_FORM_LINK" class="btn-primary">Take the Free Assessment</a>
+        <a href="#services" class="btn-secondary">Our Services</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- VISUAL SPLIT -->
+  <div class="visual-split">
+    <div class="visual-panel">
+      <img
+        src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80&auto=format&fit=crop"
+        alt="Longevity medicine"
+        loading="lazy"
+      />
+      <div class="visual-panel-label">
+        <span class="visual-panel-eyebrow">Longevity Medicine</span>
+        <span class="visual-panel-title">Live longer.<br>Live better.</span>
+      </div>
+    </div>
+    <div class="visual-panel">
+      <img
+        src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=800&q=80&auto=format&fit=crop"
+        alt="Skin longevity"
+        loading="lazy"
+      />
+      <div class="visual-panel-label">
+        <span class="visual-panel-eyebrow">Skin Longevity</span>
+        <span class="visual-panel-title">Skin that reflects<br>your biology.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLARS -->
+  <section class="pillars" id="services">
+    <div class="pillars-intro">
+      <p class="eyebrow">What We Do</p>
+      <div class="divider"></div>
+      <p>Longevity is not a single intervention. It is the result of understanding your biology across every domain — and acting on what you find.</p>
+    </div>
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-num">I</div>
+        <div class="pillar-title">Longevity Assessment</div>
+        <p class="pillar-body">A science-based, 40-question assessment across 8 longevity domains. Receive a personalised report with your biological age score and a 90-day action plan — in minutes, for free.</p>
+        <a href="YOUR_GOOGLE_FORM_LINK" class="pillar-link">Take the Assessment</a>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">II</div>
+        <div class="pillar-title">Longevity Medicine</div>
+        <p class="pillar-body">A full clinical consultation covering your health profile, targeted bloodwork, and a Year 1 longevity protocol personalised to your biology. Evidence-based. Physician-led.</p>
+        <a href="YOUR_WHATSAPP_LINK" class="pillar-link">Book a Consultation</a>
+      </div>
+      <div class="pillar">
+        <div class="pillar-num">III</div>
+        <div class="pillar-title">Skin Longevity</div>
+        <p class="pillar-body">Skin is a visible biomarker of biological age. Our curated protocol packs and clinical skin reviews target your specific concerns — from pigmentation to photoageing — with the right actives, at the right dose.</p>
+        <a href="shop.html" class="pillar-link">View Skin Protocols</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASSESSMENT BAND -->
+  <div class="assessment-band">
+    <p class="eyebrow">Free · Takes 10 minutes</p>
+    <h2 class="section-title" style="color:white;">Your biological age,<br><em style="color:var(--gold-light);">calculated.</em></h2>
+    <p>Answer 40 questions across sleep, nutrition, fitness, skin, cognition, and recovery. Receive a personalised longevity report delivered to your email.</p>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="btn-gold">Start Your Free Assessment →</a>
+    <p class="assessment-note">No account required · Delivered to your email · Private and confidential</p>
+  </div>
+
+  <!-- SHOP -->
+  <section class="shop-preview" id="shop">
+    <div class="shop-header">
+      <div>
+        <p class="eyebrow">Aevum Shop</p>
+        <h2 class="section-title">Skin <em>Protocol</em> Packs</h2>
+      </div>
+      <a href="shop.html" class="view-all">View All Packs</a>
+    </div>
+
+    <!-- MASK -->
+    <div class="mask-card">
+      <img class="mask-image"
+        src="https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=800&q=80&auto=format&fit=crop"
+        alt="Aevum Red Light Therapy Mask"
+        loading="lazy"
+      />
+      <p class="product-tag">Featured · Device</p>
+      <h3 class="product-name">Red Light Therapy Mask</h3>
+      <p class="product-sub">Aevum Private Label</p>
+      <ul class="product-contents">
+        <li>Clinical-grade red and near-infrared wavelengths</li>
+        <li>Stimulates collagen synthesis and cellular repair</li>
+        <li>10-minute daily protocol</li>
+        <li>Designed for home use</li>
+      </ul>
+      <div class="product-footer">
+        <div class="product-price">Price on request <span>/ unit</span></div>
+        <a href="YOUR_WHATSAPP_LINK" class="product-cta" style="color:var(--gold-light);">Order via WhatsApp</a>
+      </div>
+    </div>
+
+    <!-- PACKS GRID -->
+    <div class="product-grid" style="margin-top:16px;">
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&q=80&auto=format&fit=crop"
+          alt="Clear Skin Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Clear Skin Protocol</h3>
+        <p class="product-sub">(Acne Pack)</p>
+        <ul class="product-contents">
+          <li>Gentle cleanser</li>
+          <li>Acne treatment serum</li>
+          <li>Lightweight moisturiser</li>
+          <li>Sunscreen SPF 50</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&q=80&auto=format&fit=crop"
+          alt="Radiance Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Radiance Protocol</h3>
+        <p class="product-sub">(Glow Pack)</p>
+        <ul class="product-contents">
+          <li>Brightening cleanser</li>
+          <li>Vitamin C serum</li>
+          <li>Hydrating moisturiser</li>
+          <li>Sunscreen SPF 50</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&q=80&auto=format&fit=crop"
+          alt="Barrier Repair Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Barrier Repair Protocol</h3>
+        <p class="product-sub">(Hydration Pack)</p>
+        <ul class="product-contents">
+          <li>Hydrating cleanser</li>
+          <li>Hyaluronic acid serum</li>
+          <li>Nourishing moisturiser</li>
+          <li>Daily sunscreen SPF 50</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&q=80&auto=format&fit=crop"
+          alt="Skin Longevity Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Skin Longevity Protocol</h3>
+        <p class="product-sub">(Anti Aging Pack)</p>
+        <ul class="product-contents">
+          <li>Gentle cleanser</li>
+          <li>Retinol serum</li>
+          <li>Peptide moisturiser</li>
+          <li>Sunscreen SPF 50</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1599305090598-fe179d501227?w=600&q=80&auto=format&fit=crop"
+          alt="Lip Renewal Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Lip Renewal Protocol</h3>
+        <p class="product-sub">(Dark Lip Care Pack)</p>
+        <ul class="product-contents">
+          <li>Lip treatment</li>
+          <li>Lip balm with SPF</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <img class="product-image"
+          src="https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?w=600&q=80&auto=format&fit=crop"
+          alt="Brightening Protocol"
+          loading="lazy"
+        />
+        <p class="product-tag">Skin Protocol</p>
+        <h3 class="product-name">Brightening Protocol</h3>
+        <p class="product-sub">(Dark Underarm Care Pack)</p>
+        <ul class="product-contents">
+          <li>Exfoliator</li>
+          <li>Active brightening roll-on</li>
+        </ul>
+        <div class="product-consult-note">✓ Includes a free brief clinical skin review with one of our doctors</div>
+        <div class="product-footer">
+          <div class="product-price">From LKR — <span>/ pack</span></div>
+          <a href="YOUR_WHATSAPP_LINK" class="product-cta">Select Pack</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- BRANDS -->
+  <div class="brands-band">
+    <div class="brands-header">
+      <p class="eyebrow">Brands We Trust</p>
+      <p>We curate your skin protocol using products from internationally recognised skincare brands — chosen for efficacy, safety, and clinical evidence.</p>
+    </div>
+    <div class="brands-scroll">
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">Ce</div>
+        <span class="brand-pill-name">CeraVe</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">Ng</div>
+        <span class="brand-pill-name">Neutrogena</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">TO</div>
+        <span class="brand-pill-name">The Ordinary</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">CX</div>
+        <span class="brand-pill-name">COSRX</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">BJ</div>
+        <span class="brand-pill-name">Beauty of Joseon</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">S1</div>
+        <span class="brand-pill-name">Skin1004</span>
+      </a>
+      <a href="brands.html" class="brand-pill">
+        <div class="brand-pill-placeholder">Cm</div>
+        <span class="brand-pill-name">Cosmed</span>
+      </a>
+    </div>
+    <a href="brands.html" class="brands-more">View All Brands</a>
+  </div>
+
+  <!-- WHY AEVUM -->
+  <section class="why">
+    <p class="eyebrow">Why Aevum Protocol</p>
+    <h2 class="section-title">A different kind of<br><em>health practice</em></h2>
+    <div class="divider"></div>
+    <div class="trust-grid">
+      <div class="trust-item">
+        <div class="trust-icon">🔬</div>
+        <div class="trust-title">Evidence-Based</div>
+        <p class="trust-body">Every recommendation is grounded in peer-reviewed longevity science — not wellness trends.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🧬</div>
+        <div class="trust-title">Personalised</div>
+        <p class="trust-body">Your biology is unique. Your protocol is built around your specific markers, goals, and lifestyle.</p>
+      </div>
+      <div class="trust-item">
+        <div class="trust-icon">🧴</div>
+        <div class="trust-title">Skin + Longevity</div>
+        <p class="trust-body">The only practice in Sri Lanka combining skin science with longevity medicine under one roof.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ARTICLES -->
+  <section class="articles" id="learn">
+    <p class="eyebrow">Longevity Science</p>
+    <h2 class="section-title">Learn from<br><em>the evidence</em></h2>
+    <div class="divider"></div>
+    <div class="article-list">
+      <a href="#" class="article-item">
+        <div>
+          <p class="article-cat">Sleep & Recovery</p>
+          <h3 class="article-title">Why sleeping past midnight accelerates biological aging</h3>
+        </div>
+        <span class="article-arrow">→</span>
+      </a>
+      <a href="#" class="article-item">
+        <div>
+          <p class="article-cat">Skin Longevity</p>
+          <h3 class="article-title">SPF 50 every day: the single highest-ROI skincare habit</h3>
+        </div>
+        <span class="article-arrow">→</span>
+      </a>
+      <a href="#" class="article-item">
+        <div>
+          <p class="article-cat">Movement & Strength</p>
+          <h3 class="article-title">The floor rise test: what getting up from the ground reveals about your longevity</h3>
+        </div>
+        <span class="article-arrow">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- INSTAGRAM -->
+  <section class="instagram">
+    <p class="eyebrow">Follow Along</p>
+    <h2 class="section-title" style="margin-bottom:8px;">@aevum_skin_longevity</h2>
+    <p class="insta-handle">Longevity science, skin health, and evidence-based aging — on <a href="https://www.instagram.com/aevum_skin_longevity" target="_blank">Instagram</a></p>
+    <div class="insta-grid">
+      <div class="insta-placeholder"><span>📸</span></div>
+      <div class="insta-placeholder"><span>📸</span></div>
+      <div class="insta-placeholder"><span>📸</span></div>
+      <div class="insta-placeholder"><span>📸</span></div>
+      <div class="insta-placeholder"><span>📸</span></div>
+      <div class="insta-placeholder"><span>📸</span></div>
+    </div>
+    <a href="https://www.instagram.com/aevum_skin_longevity" target="_blank" class="btn-outline">Follow on Instagram</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="contact">
+    <div class="footer-top">
+      <div class="footer-logo">Aevum Protocol</div>
+      <div class="footer-tagline">Science for Better Aging</div>
+      <ul class="footer-links">
+        <li><a href="#services">Services</a></li>
+        <li><a href="shop.html">Shop</a></li>
+        <li><a href="#learn">Learn</a></li>
+        <li><a href="YOUR_GOOGLE_FORM_LINK">Free Assessment</a></li>
+      </ul>
+    </div>
+    <div class="footer-contact">
+      <p class="footer-contact-label">Get in Touch</p>
+      <a href="YOUR_WHATSAPP_LINK">WhatsApp Us →</a>
+      <a href="mailto:aevumprotocol@gmail.com">aevumprotocol@gmail.com</a>
+      <a href="https://www.instagram.com/aevum_skin_longevity" target="_blank">@aevum_skin_longevity</a>
+    </div>
+    <div class="footer-bottom">
+      © 2026 Aevum Protocol · Colombo, Sri Lanka
+    </div>
+  </footer>
+
+  <!-- WHATSAPP FLOAT BUTTON -->
+  <a href="YOUR_WHATSAPP_LINK" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+</body>
+</html>
