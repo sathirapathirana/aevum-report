@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brands We Trust — Aevum Protocol</title>
+  <meta name="description" content="Internationally recognised skincare brands curated by Aevum Protocol for your personalised skin protocol." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--cream);color:var(--charcoal);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,244,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:15px;letter-spacing:0.35em;color:var(--sage);text-decoration:none;text-transform:uppercase;}
+    .nav-back{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);text-decoration:none;display:flex;align-items:center;gap:8px;transition:color 0.2s;}
+    .nav-back:hover{color:var(--sage);}
+    .nav-back::before{content:'←';}
+
+    .page-header{padding:120px 24px 56px;background:var(--sage);}
+    .page-eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(36px,8vw,56px);color:var(--white);line-height:1.1;margin-bottom:16px;}
+    .page-title em{font-style:italic;color:rgba(255,255,255,0.6);}
+    .page-desc{font-size:14px;color:rgba(255,255,255,0.6);max-width:440px;line-height:1.75;}
+
+    .brands-section{padding:56px 24px;}
+    .brands-note{font-size:13px;color:var(--mid);line-height:1.7;max-width:520px;margin-bottom:48px;padding-bottom:28px;border-top:none;border-bottom:1px solid var(--line);}
+
+    /* FILTER TABS */
+    .filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px;}
+    .filter-tab{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 16px;border:1px solid var(--line);background:var(--white);color:var(--mid);cursor:pointer;transition:all 0.2s;}
+    .filter-tab.active,.filter-tab:hover{background:var(--sage);color:var(--white);border-color:var(--sage);}
+
+    .brands-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);}
+    .brand-card{background:var(--white);padding:24px 20px;display:flex;gap:16px;align-items:flex-start;}
+    .brand-logo-box{width:56px;height:56px;flex-shrink:0;background:var(--sage-wash);display:flex;align-items:center;justify-content:center;border-radius:2px;overflow:hidden;}
+    .brand-logo-box img{width:44px;height:44px;object-fit:contain;}
+    .brand-logo-initials{font-size:11px;font-weight:500;letter-spacing:0.05em;color:var(--sage);}
+    .brand-info{flex:1;min-width:0;}
+    .brand-name{font-family:'Jost',sans-serif;font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--charcoal);margin-bottom:6px;}
+    .brand-desc{font-size:11px;color:var(--mid);line-height:1.6;margin-bottom:8px;}
+    .brand-origin{display:inline-block;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--sage-light);background:var(--sage-wash);padding:3px 8px;}
+
+    /* ADD MORE NOTE */
+    .add-more-note{margin-top:40px;padding:24px;background:var(--sage-wash);border-left:2px solid var(--sage-light);}
+    .add-more-note p{font-size:13px;color:var(--mid);line-height:1.7;}
+    .add-more-note strong{color:var(--sage-deep);font-weight:500;}
+    .add-more-code{background:var(--white);padding:16px;margin-top:12px;font-size:11px;color:var(--mid);font-family:monospace;line-height:1.8;border:1px solid var(--line);}
+
+    /* CTA */
+    .brands-cta{text-align:center;padding:56px 24px;background:var(--cream);border-top:1px solid var(--line);}
+    .brands-cta p{font-size:14px;color:var(--mid);margin-bottom:24px;line-height:1.7;max-width:400px;margin-left:auto;margin-right:auto;}
+    .btn-sage{display:inline-block;background:var(--sage);color:var(--white);text-decoration:none;padding:14px 32px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
+    .btn-sage:hover{background:var(--sage-deep);}
+
+    footer{background:var(--charcoal);padding:32px 24px;text-align:center;}
+    .footer-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:14px;letter-spacing:0.4em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:4px;}
+    .footer-tagline{font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+
+    /* MOBILE NAV */
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;}
+    .hamburger span{display:block;width:22px;height:1px;background:var(--sage);transition:all 0.3s ease;}
+    .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+    .hamburger.open span:nth-child(2){opacity:0;}
+    .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+    .mobile-menu{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;background:var(--cream);z-index:99;padding:32px 24px;flex-direction:column;gap:0;overflow-y:auto;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--charcoal);text-decoration:none;padding:18px 0;border-bottom:1px solid var(--line);transition:color 0.2s;}
+    .mobile-menu a:hover{color:var(--sage);}
+    .mobile-menu .mobile-cta{margin-top:24px;background:var(--sage);color:var(--white)!important;padding:16px 24px;text-align:center;border-bottom:none;letter-spacing:0.25em;}
+    @media(max-width:768px){.nav-back{display:none;}.hamburger{display:flex;}}
+
+    @media(min-width:640px){.brands-grid{grid-template-columns:repeat(3,1fr);}}
+    @media(min-width:900px){.brands-section{padding:72px 48px;}.page-header{padding:120px 48px 64px;}.brands-grid{grid-template-columns:repeat(4,1fr);}nav{padding:0 48px;}}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Aevum</a>
+    <a href="index.html" class="nav-back">Back to Home</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="shop.html">Shop</a>
+    <a href="learn.html">Learn</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="mobile-cta">Free Assessment</a>
+  </div>
+
+  <div class="page-header">
+    <p class="page-eyebrow">Aevum Protocol · Our Standards</p>
+    <h1 class="page-title">Brands<br><em>we trust</em></h1>
+    <p class="page-desc">Every product in your Aevum skin protocol is selected from internationally recognised brands — chosen for clinical evidence, ingredient integrity, and proven results.</p>
+  </div>
+
+  <section class="brands-section">
+    <p class="brands-note">We do not stock every product from every brand. We curate specific products within each brand that meet our clinical standards. Your doctor selects the right products for your skin type, concerns, and goals during your free brief consultation.</p>
+
+    <div class="brands-grid" id="brands-grid">
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="althea.png" alt="Dr. Althea" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">DA</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Dr. Althea</div>
+          <p class="brand-desc">Korean dermatology-led brand combining clinical science with gentle, effective formulations for sensitive and compromised skin.</p>
+          <span class="brand-origin">South Korea · Dermatology-Led</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="anua.png" alt="Anua" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">An</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Anua</div>
+          <p class="brand-desc">Minimalist Korean skincare centred on heartleaf and botanical actives — calming, barrier-focused, and clinically gentle.</p>
+          <span class="brand-origin">South Korea · Botanical Actives</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="BOJ.png" alt="Beauty of Joseon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">BJ</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Beauty of Joseon</div>
+          <p class="brand-desc">Traditional Korean botanical wisdom combined with modern skin science. Gentle, effective, and deeply nourishing.</p>
+          <span class="brand-origin">South Korea · Botanical Science</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="usa">
+        <div class="brand-logo-box">
+          <img src="cerave.png" alt="CeraVe" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Ce</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">CeraVe</div>
+          <p class="brand-desc">Dermatologist-developed formulas restoring the skin barrier with essential ceramides, hyaluronic acid, and MVE technology.</p>
+          <span class="brand-origin">USA · Dermatologist Developed</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="usa">
+        <div class="brand-logo-box">
+          <img src="cetaphil.png" alt="Cetaphil" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Cf</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Cetaphil</div>
+          <p class="brand-desc">A globally trusted dermatological brand with decades of clinical use — known for ultra-gentle, fragrance-free formulations for all skin types.</p>
+          <span class="brand-origin">USA · Dermatologist Recommended</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="europe">
+        <div class="brand-logo-box">
+          <img src="COSMED.png" alt="Cosmed" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Cm</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Cosmed</div>
+          <p class="brand-desc">Pharmacy-grade European formulations with a strong dermatological foundation and clinical safety profile.</p>
+          <span class="brand-origin">Europe · Pharmacy Grade</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="india">
+        <div class="brand-logo-box">
+          <img src="deconstruct.png" alt="Deconstruct" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Dc</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Deconstruct</div>
+          <p class="brand-desc">Indian science-first skincare brand focused on transparent formulations with clinically studied actives at effective concentrations.</p>
+          <span class="brand-origin">India · Clinical Actives</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="india">
+        <div class="brand-logo-box">
+          <img src="minimalist.png" alt="The Minimalist" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Mn</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">The Minimalist</div>
+          <p class="brand-desc">Indian brand delivering high-efficacy actives — retinoids, AHAs, niacinamide — at accessible pricing with full ingredient transparency.</p>
+          <span class="brand-origin">India · High-Efficacy Actives</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="Numbuzin.png" alt="Numbuzin" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Nb</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Numbuzin</div>
+          <p class="brand-desc">Premium Korean skincare combining fermentation technology and active ingredients for brightening, firming, and anti-aging results.</p>
+          <span class="brand-origin">South Korea · Fermentation Science</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="india">
+        <div class="brand-logo-box">
+          <img src="plix.png" alt="Plix" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">Px</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Plix</div>
+          <p class="brand-desc">Indian plant-powered skincare brand combining botanical extracts with modern dermatological science for targeted skin concerns.</p>
+          <span class="brand-origin">India · Plant-Powered Science</span>
+        </div>
+      </div>
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="skin1004.png" alt="Skin1004" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">S1</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">Skin1004</div>
+          <p class="brand-desc">Centella asiatica specialists formulated for sensitive, reactive, and compromised skin barriers.</p>
+          <span class="brand-origin">South Korea · Centella Focused</span>
+        </div>
+      </div>
+
+      <!-- ── ADD NEW BRAND HERE ────────────────────────────────
+      Copy and paste this block to add a new brand.
+      Set data-origin to: korea / usa / europe / india / other
+
+      <div class="brand-card" data-origin="korea">
+        <div class="brand-logo-box">
+          <img src="FILENAME.png" alt="BRAND NAME" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+          <span class="brand-logo-initials" style="display:none;">XX</span>
+        </div>
+        <div class="brand-info">
+          <div class="brand-name">BRAND NAME</div>
+          <p class="brand-desc">One sentence describing the brand.</p>
+          <span class="brand-origin">COUNTRY · CATEGORY</span>
+        </div>
+      </div>
+      ──────────────────────────────────────────────────────── -->
+
+    </div>
+
+    <div class="add-more-note">
+      <p><strong>More brands coming.</strong> Our formulary is regularly updated as we evaluate new products and brands against our clinical standards.</p>
+      <div class="add-more-code">
+        To add a new brand: upload LOGO.png to GitHub root → copy the brand-card block above → paste before the closing comment → update filename, name, description, and origin.
+      </div>
+    </div>
+  </section>
+
+  <div class="brands-cta">
+    <p class="page-eyebrow" style="font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--sage);margin-bottom:12px;">Not sure which products are right for you?</p>
+    <p>Select a skin protocol pack and receive a free brief clinical skin review — our doctors choose the right products for your skin type and concerns.</p>
+    <a href="shop.html" class="btn-sage">View Skin Protocol Packs →</a>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Aevum Protocol</div>
+    <div class="footer-tagline">Science for Better Aging</div>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const btn  = document.getElementById('hamburger');
+      menu.classList.toggle('open');
+      btn.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+  </script>
+</body>
+</html>
