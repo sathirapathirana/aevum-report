@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn — Aevum Protocol</title>
+  <meta name="description" content="Evidence-based articles on sleep, nutrition, skin aging, cognitive health, and the science of living longer, better." />
+  <!-- Open Graph -->
+  <meta property="og:title" content="Learn — Aevum Protocol" />
+  <meta property="og:description" content="Evidence-based longevity science, skin health, and aging research from Aevum Protocol." />
+  <meta property="og:url" content="https://aevumprotocol.health/learn" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Aevum Protocol" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--cream);color:var(--charcoal);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,244,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:15px;letter-spacing:0.35em;color:var(--sage);text-decoration:none;text-transform:uppercase;}
+    .nav-links{display:flex;gap:24px;list-style:none;}
+    .nav-links a{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--sage);}
+    .nav-cta{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;background:var(--sage);color:var(--white)!important;padding:8px 18px;text-decoration:none;transition:background 0.2s;}
+    .nav-cta:hover{background:var(--sage-deep)!important;}
+
+    .page-header{padding:100px 24px 48px;background:var(--sage);}
+    .page-eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(40px,7vw,64px);color:var(--white);line-height:1.05;margin-bottom:16px;}
+    .page-title em{font-style:italic;color:rgba(255,255,255,0.55);}
+    .page-desc{font-size:14px;color:rgba(255,255,255,0.6);max-width:440px;line-height:1.75;}
+
+    /* FEATURED */
+    .featured-section{background:var(--white);padding:48px 24px;}
+    .section-label{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--sage);margin-bottom:20px;}
+    .featured-card{background:var(--sage);padding:40px 32px;text-decoration:none;display:block;position:relative;transition:background 0.2s;}
+    .featured-card:hover{background:var(--sage-deep);}
+    .featured-badge{position:absolute;top:20px;right:20px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);padding:4px 10px;}
+    .featured-tag{font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:12px;}
+    .featured-title{font-family:'Cormorant Garamond',serif;font-size:clamp(24px,4vw,36px);font-weight:300;color:var(--white);line-height:1.15;margin-bottom:16px;}
+    .featured-excerpt{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.75;margin-bottom:24px;max-width:560px;}
+    .featured-read{display:inline-flex;align-items:center;gap:10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,0.15);padding:11px 20px;transition:background 0.2s;}
+    .featured-card:hover .featured-read{background:rgba(255,255,255,0.25);}
+
+    /* CATEGORIES */
+    .categories-section{background:var(--cream-dark);padding:40px 24px;}
+    .cat-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
+    .cat-filter-btn{background:var(--white);border:1px solid var(--line);padding:14px 16px;cursor:pointer;text-align:left;transition:all 0.2s;display:flex;align-items:center;gap:10px;}
+    .cat-filter-btn:hover{border-color:var(--sage-light);background:var(--sage-wash);}
+    .cat-filter-btn.active{background:var(--sage);border-color:var(--sage);}
+    .cat-filter-btn.active .cat-btn-name{color:var(--white);}
+    .cat-filter-btn.active .cat-btn-count{color:rgba(255,255,255,0.6);}
+    .cat-btn-icon{font-size:18px;flex-shrink:0;}
+    .cat-btn-text{flex:1;}
+    .cat-btn-name{font-size:10px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--charcoal);display:block;margin-bottom:2px;}
+    .cat-btn-count{font-size:10px;color:var(--sage-light);letter-spacing:0.05em;}
+    .cat-btn-count.live{color:var(--sage);}
+    .clear-filter-btn{display:none;margin-top:12px;background:none;border:none;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--sage);cursor:pointer;padding:0;text-decoration:underline;}
+    .clear-filter-btn.visible{display:inline-block;}
+
+    /* ARTICLES */
+    .articles-section{background:var(--cream);padding:48px 24px;}
+    .articles-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:8px;}
+    .articles-count{font-size:11px;letter-spacing:0.1em;color:var(--mid);}
+    .articles-count span{color:var(--sage);font-weight:400;}
+    .articles-grid{display:grid;grid-template-columns:1fr;gap:12px;min-height:200px;}
+
+    .article-card{background:var(--white);text-decoration:none;display:block;transition:background 0.2s;}
+    .article-card:hover{background:var(--sage-wash);}
+    .article-card-inner{padding:24px;}
+    .article-cat{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--sage);margin-bottom:8px;}
+    .article-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--charcoal);line-height:1.2;margin-bottom:10px;}
+    .article-excerpt{font-size:12px;color:var(--mid);line-height:1.65;margin-bottom:16px;}
+    .article-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);}
+    .article-read{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--sage);}
+    .article-arrow{color:var(--sage-light);font-size:14px;}
+    .soon-badge{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;background:var(--sage-wash);color:var(--sage-light);padding:3px 8px;}
+
+    /* PAGINATION */
+    .pagination{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:36px;flex-wrap:wrap;}
+    .page-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:var(--white);color:var(--mid);font-size:12px;cursor:pointer;transition:all 0.2s;font-family:'Jost',sans-serif;}
+    .page-btn:hover{border-color:var(--sage);color:var(--sage);}
+    .page-btn.active{background:var(--sage);border-color:var(--sage);color:var(--white);}
+    .page-btn.disabled{opacity:0.3;cursor:default;pointer-events:none;}
+    .page-btn.nav{width:auto;padding:0 14px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;}
+    .page-info{font-size:11px;color:var(--mid);letter-spacing:0.1em;padding:0 8px;}
+
+    /* NO RESULTS */
+    .no-results{text-align:center;padding:60px 24px;display:none;}
+    .no-results h3{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:300;color:var(--charcoal);margin-bottom:8px;}
+    .no-results p{font-size:13px;color:var(--mid);}
+
+    /* CTA */
+    .learn-cta{background:var(--charcoal);padding:64px 24px;text-align:center;}
+    .learn-cta .eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px;}
+    .learn-cta h2{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(28px,5vw,40px);color:var(--white);margin-bottom:12px;line-height:1.2;}
+    .learn-cta p{font-size:14px;color:rgba(255,255,255,0.5);max-width:340px;margin:0 auto 32px;line-height:1.7;}
+    .btn-gold{display:inline-block;background:var(--gold);color:var(--white);text-decoration:none;padding:14px 32px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
+    .btn-gold:hover{background:#b8932a;}
+
+    footer{background:var(--charcoal);padding:36px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);}
+    .footer-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:14px;letter-spacing:0.4em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:4px;}
+    .footer-tagline{font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+    .footer-links{display:flex;gap:20px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+    .footer-links a{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-decoration:none;}
+    .footer-links a:hover{color:rgba(255,255,255,0.5);}
+
+    .whatsapp-float{position:fixed;bottom:24px;right:24px;z-index:99;background:#25D366;color:white;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,0.15);transition:transform 0.2s;}
+    .whatsapp-float:hover{transform:scale(1.08);}
+    .whatsapp-float svg{width:26px;height:26px;fill:white;}
+
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;}
+    .hamburger span{display:block;width:22px;height:1px;background:var(--sage);transition:all 0.3s ease;}
+    .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+    .hamburger.open span:nth-child(2){opacity:0;}
+    .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+    .mobile-menu{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;background:var(--cream);z-index:99;padding:32px 24px;flex-direction:column;gap:0;overflow-y:auto;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--charcoal);text-decoration:none;padding:18px 0;border-bottom:1px solid var(--line);transition:color 0.2s;}
+    .mobile-menu a:hover{color:var(--sage);}
+    .mobile-menu .mobile-cta{margin-top:24px;background:var(--sage);color:var(--white)!important;padding:16px 24px;text-align:center;border-bottom:none;letter-spacing:0.25em;}
+    @media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}}
+    @media(min-width:640px){.articles-grid{grid-template-columns:1fr 1fr;}.cat-filter-grid{grid-template-columns:repeat(4,1fr);}}
+    @media(min-width:900px){.articles-grid{grid-template-columns:repeat(3,1fr);}.featured-section{padding:64px 48px;}.categories-section{padding:48px 48px;}.articles-section{padding:64px 48px;}nav{padding:0 48px;}.page-header{padding:110px 48px 56px;}}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Aevum</a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="learn.html" style="color:var(--sage);">Learn</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="YOUR_GOOGLE_FORM_LINK" class="nav-cta">Free Assessment</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="shop.html">Shop</a>
+    <a href="learn.html">Learn</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="mobile-cta">Free Assessment</a>
+  </div>
+
+  <div class="page-header">
+    <p class="page-eyebrow">Aevum Protocol · Learn</p>
+    <h1 class="page-title">Longevity science,<br><em>explained</em></h1>
+    <p class="page-desc">Evidence-based articles on sleep, nutrition, skin aging, cognitive health, and the science of living longer, better.</p>
+  </div>
+
+  <!-- FEATURED -->
+  <section class="featured-section">
+    <p class="section-label">Featured Article</p>
+    <a href="article-sleep-midnight.html" class="featured-card">
+      <div class="featured-badge">Sleep & Recovery</div>
+      <p class="featured-tag">Featured · Most Read</p>
+      <h2 class="featured-title">Why sleeping past midnight accelerates<br>biological aging — and how to fix it</h2>
+      <p class="featured-excerpt">Circadian timing matters as much as sleep duration. Going to bed after midnight compresses your slow-wave sleep, elevates cortisol, and accelerates cellular aging — even if you're getting 7 hours. Here's what the science says and how to shift your sleep phase earlier.</p>
+      <span class="featured-read">Read Article →</span>
+    </a>
+  </section>
+
+  <!-- CATEGORY FILTER -->
+  <section class="categories-section" id="categories">
+    <p class="section-label">Browse by Topic</p>
+    <div class="cat-filter-grid">
+      <button class="cat-filter-btn" data-cat="sleep" onclick="filterCat('sleep', this)">
+        <span class="cat-btn-icon">😴</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Sleep & Recovery</span>
+          <span class="cat-btn-count live" id="count-sleep">1 article</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="nutrition" onclick="filterCat('nutrition', this)">
+        <span class="cat-btn-icon">🥗</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Nutrition</span>
+          <span class="cat-btn-count live" id="count-nutrition">1 article</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="movement" onclick="filterCat('movement', this)">
+        <span class="cat-btn-icon">🏃</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Movement</span>
+          <span class="cat-btn-count live" id="count-movement">1 article</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="skin" onclick="filterCat('skin', this)">
+        <span class="cat-btn-icon">🧴</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Skin Longevity</span>
+          <span class="cat-btn-count" id="count-skin">Coming soon</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="cognitive" onclick="filterCat('cognitive', this)">
+        <span class="cat-btn-icon">🧠</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Cognitive Health</span>
+          <span class="cat-btn-count" id="count-cognitive">Coming soon</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="stress" onclick="filterCat('stress', this)">
+        <span class="cat-btn-icon">🧘</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Stress & Hormones</span>
+          <span class="cat-btn-count" id="count-stress">Coming soon</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="cardio" onclick="filterCat('cardio', this)">
+        <span class="cat-btn-icon">💓</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Cardiovascular</span>
+          <span class="cat-btn-count" id="count-cardio">Coming soon</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="science" onclick="filterCat('science', this)">
+        <span class="cat-btn-icon">🔬</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Longevity Science</span>
+          <span class="cat-btn-count" id="count-science">Coming soon</span>
+        </span>
+      </button>
+    </div>
+    <button class="clear-filter-btn" id="clear-filter" onclick="clearFilter()">← Show all articles</button>
+  </section>
+
+  <!-- ARTICLES -->
+  <section class="articles-section" id="articles-section">
+    <div class="articles-toolbar">
+      <p class="section-label" style="margin-bottom:0;">All Articles</p>
+      <span class="articles-count" id="articles-count"></span>
+    </div>
+    <div class="articles-grid" id="articles-grid"></div>
+    <div class="no-results" id="no-results">
+      <h3>No articles yet</h3>
+      <p>Articles in this category are coming soon.</p>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </section>
+
+  <!-- CTA -->
+  <div class="learn-cta">
+    <p class="eyebrow">Put the science into practice</p>
+    <h2>Take your free<br>longevity assessment</h2>
+    <p>See how you score across all 8 longevity domains and get a personalised 90-day action plan.</p>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="btn-gold">Start the Free Assessment →</a>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Aevum Protocol</div>
+    <div class="footer-tagline">Science for Better Aging</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="shop.html">Shop</a>
+      <a href="learn.html">Learn</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </footer>
+
+  <a href="YOUR_WHATSAPP_LINK" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  </a>
+
+  <script>
+  // ── ARTICLE DATABASE ─────────────────────────────────────────
+  // To add a new article: add a new object to this array.
+  // live: true  → shows "Read Article" and links to the file
+  // live: false → shows "Coming Soon" badge, not clickable
+  const ARTICLES = [
+    {
+      cat: "sleep",
+      catLabel: "Sleep & Recovery",
+      title: "Why sleeping past midnight accelerates biological aging — and how to fix it",
+      excerpt: "Circadian timing matters as much as sleep duration. Going to bed after midnight compresses slow-wave sleep, elevates cortisol, and accelerates cellular aging — even if you're getting 7 hours.",
+      url: "article-sleep-midnight.html",
+      live: true
+    },
+    {
+      cat: "movement",
+      catLabel: "Movement & Strength",
+      title: "The floor rise test: what getting up from the ground reveals about your longevity",
+      excerpt: "Can you rise from the floor without using your hands? This simple test is one of the strongest predictors of all-cause mortality in adults — and what it means for your biological age.",
+      url: "article-floor-rise-test.html",
+      live: true
+    },
+    {
+      cat: "nutrition",
+      catLabel: "Nutrition & Metabolism",
+      title: "Eating windows and longevity: what time-restricted eating does to your biology",
+      excerpt: "Your eating window — not just what you eat — has a measurable effect on metabolic health, cellular repair, and biological aging. The evidence, and how to apply it.",
+      url: "article-eating-window.html",
+      live: true
+    },
+    {
+      cat: "skin",
+      catLabel: "Skin Longevity",
+      title: "SPF 50 every day: the single highest-ROI skincare habit you're probably skipping",
+      excerpt: "UV radiation is responsible for approximately 80% of visible facial aging. Daily broad-spectrum SPF use has been shown to visibly reverse photoaging within 12 weeks.",
+      url: "",
+      live: false
+    },
+    {
+      cat: "cognitive",
+      catLabel: "Cognitive Longevity",
+      title: "Cognitive reserve: why what you do in your 30s determines your brain health at 60",
+      excerpt: "Neuroplasticity peaks in young adulthood. The cognitive habits you build now — reading, learning, deliberate challenge — create the reserve that protects against decline decades later.",
+      url: "",
+      live: false
+    },
+    {
+      cat: "stress",
+      catLabel: "Stress & Hormones",
+      title: "Chronic mild stress at 5/10: why moderate stress is more dangerous than you think",
+      excerpt: "High acute stress gets attention. But chronic moderate stress — the kind most people carry daily — has a more insidious effect on cortisol, sleep, and cellular aging over time.",
+      url: "",
+      live: false
+    },
+    {
+      cat: "science",
+      catLabel: "Longevity Science",
+      title: "Grip strength as a longevity marker: what squeezing a dynamometer tells your doctor",
+      excerpt: "Grip strength is one of the strongest independent predictors of all-cause mortality, cardiovascular risk, and frailty. Why this simple measurement carries so much clinical weight.",
+      url: "",
+      live: false
+    },
+    {
+      cat: "skin",
+      catLabel: "Skin Longevity",
+      title: "Retinol vs tretinoin: which one is right for your skin and your age",
+      excerpt: "Both are vitamin A derivatives with strong evidence for wrinkle reduction and skin renewal. But they work differently and suit different skin types. A clinical breakdown.",
+      url: "",
+      live: false
+    },
+  ];
+
+  // ── CONFIG ───────────────────────────────────────────────────
+  const PER_PAGE     = 9;
+  let currentCat     = null;
+  let currentPage    = 1;
+
+  // ── INIT ─────────────────────────────────────────────────────
+  window.addEventListener('DOMContentLoaded', () => {
+    updateCategoryCounts();
+    renderArticles();
+  });
+
+  // ── UPDATE CATEGORY COUNTS ───────────────────────────────────
+  function updateCategoryCounts() {
+    const cats = ['sleep','nutrition','movement','skin','cognitive','stress','cardio','science'];
+    cats.forEach(cat => {
+      const liveCount = ARTICLES.filter(a => a.cat === cat && a.live).length;
+      const el = document.getElementById('count-' + cat);
+      if (!el) return;
+      if (liveCount > 0) {
+        el.textContent = liveCount + (liveCount === 1 ? ' article' : ' articles');
+        el.classList.add('live');
+      } else {
+        el.textContent = 'Coming soon';
+        el.classList.remove('live');
+      }
+    });
+  }
+
+  // ── FILTER ───────────────────────────────────────────────────
+  function filterCat(cat, btn) {
+    // Toggle off if same cat clicked again
+    if (currentCat === cat) { clearFilter(); return; }
+    currentCat  = cat;
+    currentPage = 1;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('clear-filter').classList.add('visible');
+    renderArticles();
+    document.getElementById('articles-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function clearFilter() {
+    currentCat  = null;
+    currentPage = 1;
+    document.querySelectorAll('.cat-filter-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('clear-filter').classList.remove('visible');
+    renderArticles();
+  }
+
+  // ── RENDER ───────────────────────────────────────────────────
+  function renderArticles() {
+    const filtered = currentCat
+      ? ARTICLES.filter(a => a.cat === currentCat)
+      : ARTICLES;
+
+    const liveFiltered = filtered.filter(a => a.live);
+    const total        = filtered.length;
+    const liveTotal    = liveFiltered.length;
+    const totalPages   = Math.max(1, Math.ceil(total / PER_PAGE));
+    currentPage        = Math.min(currentPage, totalPages);
+
+    const start  = (currentPage - 1) * PER_PAGE;
+    const paged  = filtered.slice(start, start + PER_PAGE);
+
+    // Count label
+    const countEl = document.getElementById('articles-count');
+    if (currentCat) {
+      countEl.innerHTML = `<span>${liveTotal}</span> live · ${total} total in this category`;
+    } else {
+      const totalLive = ARTICLES.filter(a => a.live).length;
+      countEl.innerHTML = `<span>${totalLive}</span> live · ${ARTICLES.length} total`;
+    }
+
+    // Section label
+    document.querySelector('.articles-toolbar .section-label').textContent =
+      currentCat
+        ? ARTICLES.find(a => a.cat === currentCat)?.catLabel || 'Articles'
+        : 'All Articles';
+
+    // No results
+    const noResults = document.getElementById('no-results');
+    if (paged.length === 0) {
+      noResults.style.display = 'block';
+      document.getElementById('articles-grid').innerHTML = '';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+    noResults.style.display = 'none';
+
+    // Render cards
+    const grid = document.getElementById('articles-grid');
+    grid.innerHTML = paged.map(a => {
+      if (a.live) {
+        return `
+          <a href="${a.url}" class="article-card">
+            <div class="article-card-inner">
+              <p class="article-cat">${a.catLabel}</p>
+              <h3 class="article-title">${a.title}</h3>
+              <p class="article-excerpt">${a.excerpt}</p>
+              <div class="article-footer">
+                <span class="article-read">Read Article</span>
+                <span class="article-arrow">→</span>
+              </div>
+            </div>
+          </a>`;
+      } else {
+        return `
+          <div class="article-card" style="opacity:0.55;cursor:default;">
+            <div class="article-card-inner">
+              <p class="article-cat">${a.catLabel}</p>
+              <h3 class="article-title">${a.title}</h3>
+              <p class="article-excerpt">${a.excerpt}</p>
+              <div class="article-footer">
+                <span class="soon-badge">Coming Soon</span>
+                <span class="article-arrow" style="color:var(--line);">→</span>
+              </div>
+            </div>
+          </div>`;
+      }
+    }).join('');
+
+    // Pagination
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const pg = document.getElementById('pagination');
+    if (totalPages <= 1) { pg.innerHTML = ''; return; }
+
+    let html = '';
+    html += `<button class="page-btn nav ${currentPage === 1 ? 'disabled' : ''}" onclick="goPage(${currentPage - 1})">← Prev</button>`;
+
+    for (let i = 1; i <= totalPages; i++) {
+      if (totalPages > 7 && i > 2 && i < totalPages - 1 && Math.abs(i - currentPage) > 1) {
+        if (i === 3 || i === totalPages - 2) html += `<span class="page-info">…</span>`;
+        continue;
+      }
+      html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    }
+
+    html += `<button class="page-btn nav ${currentPage === totalPages ? 'disabled' : ''}" onclick="goPage(${currentPage + 1})">Next →</button>`;
+    pg.innerHTML = html;
+  }
+
+  function goPage(page) {
+    currentPage = page;
+    renderArticles();
+    document.getElementById('articles-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ── MOBILE NAV ───────────────────────────────────────────────
+  function toggleMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const btn  = document.getElementById('hamburger');
+    menu.classList.toggle('open');
+    btn.classList.toggle('open');
+    document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+  }
+  document.querySelectorAll('.mobile-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+      document.getElementById('mobile-menu').classList.remove('open');
+      document.getElementById('hamburger').classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+  </script>
+
+</body>
+</html>
