@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learn — Aevum Protocol</title>
+  <meta name="description" content="Evidence-based articles on sleep, nutrition, skin aging, cognitive health, and the science of living longer, better." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--cream);color:var(--charcoal);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,244,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:15px;letter-spacing:0.35em;color:var(--sage);text-decoration:none;text-transform:uppercase;}
+    .nav-links{display:flex;gap:24px;list-style:none;}
+    .nav-links a{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--sage);}
+    .nav-cta{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;background:var(--sage);color:var(--white)!important;padding:8px 18px;text-decoration:none;transition:background 0.2s;}
+    .nav-cta:hover{background:var(--sage-deep)!important;}
+
+    /* PAGE HEADER */
+    .page-header{padding:100px 24px 48px;background:var(--sage);}
+    .page-eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(40px,7vw,64px);color:var(--white);line-height:1.05;margin-bottom:16px;}
+    .page-title em{font-style:italic;color:rgba(255,255,255,0.55);}
+    .page-desc{font-size:14px;color:rgba(255,255,255,0.6);max-width:440px;line-height:1.75;}
+
+    /* FEATURED ARTICLE */
+    .featured-section{background:var(--white);padding:48px 24px;}
+    .featured-card{background:var(--sage);padding:40px 32px;text-decoration:none;display:block;position:relative;overflow:hidden;transition:background 0.2s;}
+    .featured-card:hover{background:var(--sage-deep);}
+    .featured-tag{font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:12px;}
+    .featured-title{font-family:'Cormorant Garamond',serif;font-size:clamp(24px,4vw,36px);font-weight:300;color:var(--white);line-height:1.15;margin-bottom:16px;}
+    .featured-excerpt{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.75;margin-bottom:24px;max-width:560px;}
+    .featured-read{display:inline-flex;align-items:center;gap:10px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--white);background:rgba(255,255,255,0.15);padding:11px 20px;transition:background 0.2s;}
+    .featured-card:hover .featured-read{background:rgba(255,255,255,0.25);}
+    .featured-label{position:absolute;top:20px;right:20px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);padding:4px 10px;}
+
+    /* ARTICLES GRID */
+    .articles-section{background:var(--cream);padding:48px 24px;}
+    .section-label{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--sage);margin-bottom:28px;}
+    .articles-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+
+    .article-card{background:var(--white);text-decoration:none;display:block;transition:background 0.2s;}
+    .article-card:hover{background:var(--sage-wash);}
+    .article-card-inner{padding:24px;}
+    .article-cat{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--sage);margin-bottom:8px;}
+    .article-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;color:var(--charcoal);line-height:1.2;margin-bottom:10px;}
+    .article-excerpt{font-size:12px;color:var(--mid);line-height:1.65;margin-bottom:16px;}
+    .article-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);}
+    .article-read{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--sage);}
+    .article-arrow{color:var(--sage-light);font-size:14px;}
+
+    /* COMING SOON CARD */
+    .article-card.coming-soon{opacity:0.6;cursor:default;}
+    .article-card.coming-soon:hover{background:var(--white);}
+    .soon-badge{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;background:var(--sage-wash);color:var(--sage-light);padding:3px 8px;}
+
+    /* CATEGORIES */
+    .categories-section{background:var(--white);padding:48px 24px;}
+    .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);margin-top:24px;}
+    .cat-item{background:var(--cream);padding:20px 18px;}
+    .cat-item.has-articles{background:var(--white);cursor:pointer;}
+    .cat-item.has-articles:hover{background:var(--sage-wash);}
+    .cat-icon{font-size:20px;margin-bottom:8px;}
+    .cat-name{font-size:11px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--charcoal);margin-bottom:4px;}
+    .cat-count{font-size:10px;color:var(--sage-light);letter-spacing:0.1em;}
+    .cat-count.live{color:var(--sage);font-weight:400;}
+
+    /* CTA */
+    .learn-cta{background:var(--charcoal);padding:64px 24px;text-align:center;}
+    .learn-cta .eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:12px;}
+    .learn-cta h2{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(28px,5vw,40px);color:var(--white);margin-bottom:12px;line-height:1.2;}
+    .learn-cta p{font-size:14px;color:rgba(255,255,255,0.5);max-width:340px;margin:0 auto 32px;line-height:1.7;}
+    .btn-gold{display:inline-block;background:var(--gold);color:var(--white);text-decoration:none;padding:14px 32px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
+    .btn-gold:hover{background:#b8932a;}
+
+    footer{background:var(--charcoal);padding:36px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);}
+    .footer-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:14px;letter-spacing:0.4em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:4px;}
+    .footer-tagline{font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+    .footer-links{display:flex;gap:20px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+    .footer-links a{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-decoration:none;}
+    .footer-links a:hover{color:rgba(255,255,255,0.5);}
+
+    .whatsapp-float{position:fixed;bottom:24px;right:24px;z-index:99;background:#25D366;color:white;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 20px rgba(0,0,0,0.15);transition:transform 0.2s;}
+    .whatsapp-float:hover{transform:scale(1.08);}
+    .whatsapp-float svg{width:26px;height:26px;fill:white;}
+
+    /* MOBILE NAV */
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;}
+    .hamburger span{display:block;width:22px;height:1px;background:var(--sage);transition:all 0.3s ease;}
+    .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+    .hamburger.open span:nth-child(2){opacity:0;}
+    .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+    .mobile-menu{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;background:var(--cream);z-index:99;padding:32px 24px;flex-direction:column;gap:0;overflow-y:auto;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--charcoal);text-decoration:none;padding:18px 0;border-bottom:1px solid var(--line);transition:color 0.2s;}
+    .mobile-menu a:hover{color:var(--sage);}
+    .mobile-menu .mobile-cta{margin-top:24px;background:var(--sage);color:var(--white)!important;padding:16px 24px;text-align:center;border-bottom:none;letter-spacing:0.25em;}
+    @media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}}
+    @media(min-width:640px){.articles-grid{grid-template-columns:1fr 1fr;}.cat-grid{grid-template-columns:repeat(4,1fr);}}
+    @media(min-width:900px){.articles-grid{grid-template-columns:repeat(3,1fr);}.featured-section{padding:64px 48px;}.articles-section{padding:64px 48px;}.categories-section{padding:64px 48px;}nav{padding:0 48px;}.page-header{padding:110px 48px 56px;}}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Aevum</a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="learn.html" style="color:var(--sage);">Learn</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="YOUR_GOOGLE_FORM_LINK" class="nav-cta">Free Assessment</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="shop.html">Shop</a>
+    <a href="learn.html">Learn</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="mobile-cta">Free Assessment</a>
+  </div>
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <p class="page-eyebrow">Aevum Protocol · Learn</p>
+    <h1 class="page-title">Longevity science,<br><em>explained</em></h1>
+    <p class="page-desc">Evidence-based articles on sleep, nutrition, skin aging, cognitive health, and the science of living longer, better.</p>
+  </div>
+
+  <!-- FEATURED ARTICLE -->
+  <section class="featured-section">
+    <p class="section-label">Featured Article</p>
+    <a href="article-sleep-midnight.html" class="featured-card">
+      <div class="featured-label">Sleep & Recovery</div>
+      <p class="featured-tag">Featured · Most Read</p>
+      <h2 class="featured-title">Why sleeping past midnight accelerates<br>biological aging — and how to fix it</h2>
+      <p class="featured-excerpt">Circadian timing matters as much as sleep duration. Going to bed after midnight compresses your slow-wave sleep, elevates cortisol, and accelerates cellular aging — even if you're getting 7 hours. Here's what the science says and exactly how to shift your sleep phase earlier.</p>
+      <span class="featured-read">Read Article →</span>
+    </a>
+  </section>
+
+  <!-- ALL ARTICLES -->
+  <section class="articles-section">
+    <p class="section-label">All Articles</p>
+    <div class="articles-grid">
+
+      <!-- LIVE ARTICLES -->
+      <a href="article-floor-rise-test.html" class="article-card">
+        <div class="article-card-inner">
+          <p class="article-cat">Movement & Strength</p>
+          <h3 class="article-title">The floor rise test: what getting up from the ground reveals about your longevity</h3>
+          <p class="article-excerpt">Can you rise from the floor without using your hands? This simple test is one of the strongest predictors of all-cause mortality in adults — and what it means for your biological age.</p>
+          <div class="article-footer">
+            <span class="article-read">Read Article</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <a href="article-eating-window.html" class="article-card">
+        <div class="article-card-inner">
+          <p class="article-cat">Nutrition & Metabolism</p>
+          <h3 class="article-title">Eating windows and longevity: what time-restricted eating does to your biology</h3>
+          <p class="article-excerpt">Your eating window — not just what you eat — has a measurable effect on metabolic health, cellular repair, and biological aging. The evidence, and how to apply it.</p>
+          <div class="article-footer">
+            <span class="article-read">Read Article</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- COMING SOON ARTICLES -->
+      <div class="article-card coming-soon">
+        <div class="article-card-inner">
+          <p class="article-cat">Skin Longevity</p>
+          <h3 class="article-title">SPF 50 every day: the single highest-ROI skincare habit you're probably skipping</h3>
+          <p class="article-excerpt">UV radiation is responsible for approximately 80% of visible facial aging. Daily broad-spectrum SPF use has been shown to visibly reverse photoaging within 12 weeks.</p>
+          <div class="article-footer">
+            <span class="soon-badge">Coming Soon</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="article-card-inner">
+          <p class="article-cat">Cognitive Longevity</p>
+          <h3 class="article-title">Cognitive reserve: why what you do in your 30s determines your brain health at 60</h3>
+          <p class="article-excerpt">Neuroplasticity peaks in young adulthood. The cognitive habits you build now — reading, learning, deliberate challenge — create the reserve that protects against decline decades later.</p>
+          <div class="article-footer">
+            <span class="soon-badge">Coming Soon</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="article-card-inner">
+          <p class="article-cat">Stress & Hormones</p>
+          <h3 class="article-title">Chronic mild stress at 5/10: why moderate stress is more dangerous than you think</h3>
+          <p class="article-excerpt">High acute stress gets attention. But chronic moderate stress — the kind most people carry daily — has a more insidious effect on cortisol, sleep, and cellular aging over time.</p>
+          <div class="article-footer">
+            <span class="soon-badge">Coming Soon</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="article-card-inner">
+          <p class="article-cat">Longevity Science</p>
+          <h3 class="article-title">Grip strength as a longevity marker: what squeezing a dynamometer tells your doctor</h3>
+          <p class="article-excerpt">Grip strength is one of the strongest independent predictors of all-cause mortality, cardiovascular risk, and frailty. Why this simple measurement carries so much clinical weight.</p>
+          <div class="article-footer">
+            <span class="soon-badge">Coming Soon</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-card coming-soon">
+        <div class="article-card-inner">
+          <p class="article-cat">Skin Longevity</p>
+          <h3 class="article-title">Retinol vs tretinoin: which one is right for your skin and your age</h3>
+          <p class="article-excerpt">Both are vitamin A derivatives with strong evidence for wrinkle reduction and skin renewal. But they work differently and suit different skin types. A clinical breakdown.</p>
+          <div class="article-footer">
+            <span class="soon-badge">Coming Soon</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ADD NEW ARTICLE CARDS HERE ──────────────────────────
+      For a LIVE article:
+      <a href="article-your-filename.html" class="article-card">
+        <div class="article-card-inner">
+          <p class="article-cat">Category Name</p>
+          <h3 class="article-title">Your Article Title</h3>
+          <p class="article-excerpt">Brief excerpt — 1-2 sentences.</p>
+          <div class="article-footer">
+            <span class="article-read">Read Article</span>
+            <span class="article-arrow">→</span>
+          </div>
+        </div>
+      </a>
+
+      For a COMING SOON article:
+      <div class="article-card coming-soon">
+        ... same structure, but with soon-badge instead of article-read ...
+      </div>
+      ─────────────────────────────────────────────────────────── -->
+
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories-section">
+    <p class="section-label">Browse by Topic</p>
+    <div class="cat-grid">
+      <div class="cat-item has-articles" onclick="window.location='article-sleep-midnight.html'">
+        <div class="cat-icon">😴</div>
+        <div class="cat-name">Sleep & Recovery</div>
+        <div class="cat-count live">1 article</div>
+      </div>
+      <div class="cat-item has-articles" onclick="window.location='article-eating-window.html'">
+        <div class="cat-icon">🥗</div>
+        <div class="cat-name">Nutrition</div>
+        <div class="cat-count live">1 article</div>
+      </div>
+      <div class="cat-item has-articles" onclick="window.location='article-floor-rise-test.html'">
+        <div class="cat-icon">🏃</div>
+        <div class="cat-name">Movement</div>
+        <div class="cat-count live">1 article</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">🧴</div>
+        <div class="cat-name">Skin Longevity</div>
+        <div class="cat-count">Coming soon</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">🧠</div>
+        <div class="cat-name">Cognitive Health</div>
+        <div class="cat-count">Coming soon</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">🧘</div>
+        <div class="cat-name">Stress & Hormones</div>
+        <div class="cat-count">Coming soon</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">💓</div>
+        <div class="cat-name">Cardiovascular</div>
+        <div class="cat-count">Coming soon</div>
+      </div>
+      <div class="cat-item">
+        <div class="cat-icon">🔬</div>
+        <div class="cat-name">Longevity Science</div>
+        <div class="cat-count">Coming soon</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="learn-cta">
+    <p class="eyebrow">Put the science into practice</p>
+    <h2>Take your free<br>longevity assessment</h2>
+    <p>See how you score across all 8 longevity domains and get a personalised 90-day action plan.</p>
+    <a href="YOUR_GOOGLE_FORM_LINK" class="btn-gold">Start the Free Assessment →</a>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Aevum Protocol</div>
+    <div class="footer-tagline">Science for Better Aging</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="shop.html">Shop</a>
+      <a href="learn.html">Learn</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </div>
+  </footer>
+
+  <a href="YOUR_WHATSAPP_LINK" class="whatsapp-float" target="_blank" aria-label="Chat on WhatsApp">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const btn  = document.getElementById('hamburger');
+      menu.classList.toggle('open');
+      btn.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+  </script>
+
+</body>
+</html>
