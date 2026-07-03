@@ -1,0 +1,15 @@
+{
+  "rewrites": [
+    { "source": "/report/:id",               "destination": "/report.html" },
+    { "source": "/demo",                      "destination": "/report.html" },
+    { "source": "/brands",                    "destination": "/brands.html" },
+    { "source": "/about",                     "destination": "/about.html" },
+    { "source": "/services",                  "destination": "/services.html" },
+    { "source": "/learn",                     "destination": "/learn.html" },
+    { "source": "/contact",                   "destination": "/contact.html" },
+    { "source": "/shop",                      "destination": "/shop.html" },
+    { "source": "/article-sleep-midnight",    "destination": "/article-sleep-midnight.html" },
+    { "source": "/article-eating-window",     "destination": "/article-eating-window.html" },
+    { "source": "/article-floor-rise-test",   "destination": "/article-floor-rise-test.html" }
+  ]
+}
