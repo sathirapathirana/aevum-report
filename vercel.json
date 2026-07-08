@@ -2,6 +2,9 @@
   "rewrites": [
     { "source": "/report/:id",               "destination": "/report.html" },
     { "source": "/demo",                      "destination": "/report.html" },
+    { "source": "/login",                     "destination": "/login.html" },
+    { "source": "/portal",                    "destination": "/portal.html" },
+    { "source": "/clinician",                 "destination": "/clinician.html" },
     { "source": "/brands",                    "destination": "/brands.html" },
     { "source": "/about",                     "destination": "/about.html" },
     { "source": "/services",                  "destination": "/services.html" },
