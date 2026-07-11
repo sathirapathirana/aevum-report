@@ -91,18 +91,18 @@
   </div>
 
   <script>
-    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabase.co";
+    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabaseClient.co";
     const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let allPatients = [];
     let selectedPatientId = null;
 
     async function init() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
 
-      const { data: staffRow } = await supabase.from('staff').select('id').eq('id', session.user.id).maybeSingle();
+      const { data: staffRow } = await supabaseClient.from('staff').select('id').eq('id', session.user.id).maybeSingle();
       if (!staffRow) {
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('access-denied').style.display = 'block';
@@ -115,7 +115,7 @@
     }
 
     async function loadPatients() {
-      const { data } = await supabase.from('profiles').select('id, full_name, subscription_tier').order('created_at', { ascending: false });
+      const { data } = await supabaseClient.from('profiles').select('id, full_name, subscription_tier').order('created_at', { ascending: false });
       allPatients = data || [];
       renderPatientList(allPatients);
     }
@@ -144,8 +144,8 @@
         (p.full_name || '').toLowerCase().includes(document.getElementById('patient-search').value.toLowerCase()) : true));
 
       const patient = allPatients.find(p => p.id === id);
-      const { data: planData } = await supabase.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
-      const { data: notesData } = await supabase.from('visit_notes').select('*').eq('patient_id', id).order('visit_date', { ascending: false });
+      const { data: planData } = await supabaseClient.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: notesData } = await supabaseClient.from('visit_notes').select('*').eq('patient_id', id).order('visit_date', { ascending: false });
 
       const wrap = document.getElementById('detail-wrap');
       wrap.innerHTML = `
@@ -215,7 +215,7 @@
         const btn = document.getElementById('save-tier-btn');
         const msg = document.getElementById('tier-msg');
         btn.disabled = true;
-        const { error } = await supabase.from('profiles').update({
+        const { error } = await supabaseClient.from('profiles').update({
           subscription_tier: document.getElementById('tier-select').value,
           next_visit_date: document.getElementById('visit-date-input').value || null,
         }).eq('id', id);
@@ -233,14 +233,14 @@
           patient_id: id,
           content: document.getElementById('plan-textarea').value,
           status: document.getElementById('plan-status-select').value,
-          reviewed_by: document.getElementById('plan-status-select').value === 'reviewed' ? (await supabase.auth.getUser()).data.user.id : null,
+          reviewed_by: document.getElementById('plan-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
         };
         let error;
         if (planData) {
-          ({ error } = await supabase.from('plans').update(payload).eq('id', planData.id));
+          ({ error } = await supabaseClient.from('plans').update(payload).eq('id', planData.id));
         } else {
-          ({ error } = await supabase.from('plans').insert(payload));
+          ({ error } = await supabaseClient.from('plans').insert(payload));
         }
         btn.disabled = false;
         msg.className = 'msg show ' + (error ? 'error' : 'success');
@@ -253,8 +253,8 @@
         const content = document.getElementById('note-textarea').value.trim();
         if (!content) return;
         btn.disabled = true;
-        const { data: userData } = await supabase.auth.getUser();
-        const { error } = await supabase.from('visit_notes').insert({
+        const { data: userData } = await supabaseClient.auth.getUser();
+        const { error } = await supabaseClient.from('visit_notes').insert({
           patient_id: id,
           visit_date: document.getElementById('note-date-input').value,
           content,
@@ -268,7 +268,7 @@
     }
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
     });
 

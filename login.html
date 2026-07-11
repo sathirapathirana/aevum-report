@@ -97,10 +97,10 @@
 
   <script>
     // ── CONFIG ── replace with your actual Supabase project values
-    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabase.co";
+    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabaseClient.co";
     const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const form = document.getElementById('login-form');
     const msg = document.getElementById('msg');
@@ -113,7 +113,7 @@
 
     // If already signed in, go straight to the portal
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (session) window.location.href = 'portal.html';
     })();
 
@@ -125,7 +125,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
 
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabaseClient.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: window.location.origin + '/portal.html',
@@ -183,7 +183,7 @@
       pwSubmitBtn.disabled = true;
       pwSubmitBtn.textContent = 'Signing in…';
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
         showMsg(error.message || 'Incorrect email or password.', 'error');

@@ -275,10 +275,10 @@
 
   <script>
     // ── CONFIG ── replace with your actual Supabase project values
-    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabase.co";
+    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabaseClient.co";
     const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const METRIC_LABELS = {
       weight_kg: 'Weight (kg)', systolic_bp: 'Systolic BP (mmHg)', diastolic_bp: 'Diastolic BP (mmHg)',
@@ -302,15 +302,15 @@
     });
 
     async function init() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
       currentUser = session.user;
 
       // Staff members belong on the clinician dashboard, not here
-      const { data: staffRow } = await supabase.from('staff').select('id').eq('id', currentUser.id).maybeSingle();
+      const { data: staffRow } = await supabaseClient.from('staff').select('id').eq('id', currentUser.id).maybeSingle();
       if (staffRow) { window.location.href = 'clinician.html'; return; }
 
-      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+      const { data: profileData } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
       profile = profileData || { subscription_tier: 'free' };
 
       document.getElementById('welcome-name').textContent = profile.full_name || currentUser.email;
@@ -345,7 +345,7 @@
 
     // ── Plan ──
     async function loadPlan() {
-      const { data } = await supabase.from('plans').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data } = await supabaseClient.from('plans').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
       const pill = document.getElementById('plan-status-pill');
       const content = document.getElementById('plan-content');
       const disclaimer = document.getElementById('plan-disclaimer');
@@ -375,7 +375,7 @@
 
     // ── Follow-up notes ──
     async function loadNotes() {
-      const { data } = await supabase.from('visit_notes').select('*').eq('patient_id', currentUser.id).order('visit_date', { ascending: false });
+      const { data } = await supabaseClient.from('visit_notes').select('*').eq('patient_id', currentUser.id).order('visit_date', { ascending: false });
       const list = document.getElementById('notes-list');
       const empty = document.getElementById('notes-empty');
       list.innerHTML = '';
@@ -408,7 +408,7 @@
     }
 
     async function loadChart(metric) {
-      const { data, error } = await supabase.from('measurements').select('value, recorded_at')
+      const { data, error } = await supabaseClient.from('measurements').select('value, recorded_at')
         .eq('patient_id', currentUser.id).eq('metric', metric).order('recorded_at', { ascending: true });
 
       const emptyState = document.getElementById('empty-state');
@@ -442,7 +442,7 @@
       const saveBtn = document.getElementById('save-btn');
       if (!metric || isNaN(value)) return;
       saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-      const { error } = await supabase.from('measurements').insert({ patient_id: currentUser.id, metric, value, recorded_at: recordedAt });
+      const { error } = await supabaseClient.from('measurements').insert({ patient_id: currentUser.id, metric, value, recorded_at: recordedAt });
       saveBtn.disabled = false; saveBtn.textContent = 'Save Entry';
       if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
       else {
@@ -454,7 +454,7 @@
 
     // ── Blood work ──
     async function loadBloodWork() {
-      const { data } = await supabase.from('blood_work').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: false });
+      const { data } = await supabaseClient.from('blood_work').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: false });
       const tbody = document.getElementById('bw-tbody');
       const empty = document.getElementById('bw-empty');
       tbody.innerHTML = '';
@@ -468,7 +468,7 @@
         tbody.appendChild(tr);
       });
       tbody.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
-        await supabase.from('blood_work').delete().eq('id', b.dataset.id);
+        await supabaseClient.from('blood_work').delete().eq('id', b.dataset.id);
         loadBloodWork();
       }));
     }
@@ -486,7 +486,7 @@
       };
       if (!payload.test_name || isNaN(payload.value)) return;
       btn.disabled = true; btn.textContent = 'Saving…';
-      const { error } = await supabase.from('blood_work').insert(payload);
+      const { error } = await supabaseClient.from('blood_work').insert(payload);
       btn.disabled = false; btn.textContent = 'Add Result';
       if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
       else {
@@ -498,7 +498,7 @@
 
     // ── Medications ──
     async function loadMedications() {
-      const { data } = await supabase.from('medications').select('*').eq('patient_id', currentUser.id).eq('active', true).order('added_at', { ascending: false });
+      const { data } = await supabaseClient.from('medications').select('*').eq('patient_id', currentUser.id).eq('active', true).order('added_at', { ascending: false });
       const list = document.getElementById('med-list');
       const empty = document.getElementById('med-empty');
       list.innerHTML = '';
@@ -514,7 +514,7 @@
         list.appendChild(div);
       });
       list.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
-        await supabase.from('medications').update({ active: false }).eq('id', b.dataset.id);
+        await supabaseClient.from('medications').update({ active: false }).eq('id', b.dataset.id);
         loadMedications();
       }));
     }
@@ -531,7 +531,7 @@
       };
       if (!payload.name) return;
       btn.disabled = true; btn.textContent = 'Saving…';
-      const { error } = await supabase.from('medications').insert(payload);
+      const { error } = await supabaseClient.from('medications').insert(payload);
       btn.disabled = false; btn.textContent = 'Add';
       if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
       else {
@@ -549,7 +549,7 @@
       const btn = document.getElementById('password-btn');
       if (!newPassword || newPassword.length < 6) return;
       btn.disabled = true; btn.textContent = 'Saving…';
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
       btn.disabled = false; btn.textContent = 'Set Password';
       if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
       else {
@@ -559,7 +559,7 @@
     });
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = 'login.html';
     });
 
