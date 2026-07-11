@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinician Dashboard — Aevum Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;--attention:#C47A6A;--attention-bg:#F8EAE8;--good:#7A9068;--good-bg:#EEF2EA;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--cream);color:var(--charcoal);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,244,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:15px;letter-spacing:0.35em;color:var(--sage);text-decoration:none;text-transform:uppercase;}
+    .nav-logo span{font-size:9px;letter-spacing:0.1em;color:var(--mid);text-transform:none;margin-left:10px;}
+    #logout-btn{background:none;border:1px solid var(--line);color:var(--mid);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;padding:8px 16px;cursor:pointer;transition:all 0.2s;}
+    #logout-btn:hover{border-color:var(--sage);color:var(--sage);}
+
+    .layout{max-width:1200px;margin:0 auto;padding:96px 24px 64px;display:grid;grid-template-columns:1fr;gap:24px;}
+    @media(min-width:960px){.layout{grid-template-columns:300px 1fr;align-items:start;}}
+
+    .panel{background:var(--white);padding:24px;}
+    .panel-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--charcoal);margin-bottom:14px;}
+
+    input[type="text"],input[type="search"]{width:100%;padding:11px 13px;border:1px solid var(--line);background:var(--cream);font-family:'Jost',sans-serif;font-size:13px;color:var(--charcoal);margin-bottom:14px;}
+    input:focus{outline:none;border-color:var(--sage);}
+
+    .patient-item{padding:12px 10px;cursor:pointer;border-radius:2px;transition:background 0.15s;display:flex;justify-content:space-between;align-items:center;}
+    .patient-item:hover{background:var(--cream);}
+    .patient-item.active{background:var(--sage-wash);}
+    .patient-name{font-size:13.5px;color:var(--charcoal);}
+    .patient-email{font-size:11px;color:var(--mid);margin-top:2px;}
+    .mini-badge{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--sage-light);color:var(--sage-deep);white-space:nowrap;}
+    .mini-badge.paid{background:var(--sage);color:var(--white);border-color:var(--sage);}
+
+    label{display:block;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);margin-bottom:8px;margin-top:16px;}
+    label:first-child{margin-top:0;}
+    select,textarea,input[type="date"]{width:100%;padding:12px 14px;border:1px solid var(--line);background:var(--cream);font-family:'Jost',sans-serif;font-size:14px;color:var(--charcoal);}
+    textarea{min-height:160px;line-height:1.6;resize:vertical;}
+    select:focus,textarea:focus,input:focus{outline:none;border-color:var(--sage);}
+
+    .btn-sage{display:inline-block;background:var(--sage);color:var(--white);border:none;text-decoration:none;padding:12px 20px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;font-family:'Jost',sans-serif;transition:background 0.2s;margin-top:16px;}
+    .btn-sage:hover{background:var(--sage-deep);}
+    .btn-sage:disabled{background:var(--sage-light);cursor:not-allowed;}
+
+    .msg{margin-top:14px;padding:11px 13px;font-size:12px;line-height:1.6;display:none;}
+    .msg.show{display:block;}
+    .msg.success{background:var(--good-bg);color:var(--sage-deep);}
+    .msg.error{background:var(--attention-bg);color:var(--attention);}
+
+    .empty-detail{color:var(--mid);font-size:13px;text-align:center;padding:80px 20px;}
+
+    .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .note-item{padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;}
+    .note-item:last-child{border-bottom:none;}
+    .note-date{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:4px;}
+
+    #access-denied{max-width:480px;margin:140px auto;text-align:center;padding:0 24px;}
+    #loading-screen{position:fixed;inset:0;background:var(--cream);display:flex;align-items:center;justify-content:center;z-index:200;}
+    #loading-screen .mark{font-family:'Jost',sans-serif;font-weight:200;font-size:22px;letter-spacing:0.3em;color:var(--sage);}
+  </style>
+</head>
+<body>
+
+  <div id="loading-screen"><span class="mark">AEVUM</span></div>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Aevum <span>Clinician</span></a>
+    <button id="logout-btn">Sign Out</button>
+  </nav>
+
+  <div class="layout" id="layout" style="display:none;">
+    <div class="panel">
+      <h2 class="panel-title">Patients</h2>
+      <input type="search" id="patient-search" placeholder="Search by name or email…" />
+      <div id="patient-list"></div>
+    </div>
+
+    <div id="detail-wrap">
+      <p class="empty-detail">Select a patient to view their profile.</p>
+    </div>
+  </div>
+
+  <div id="access-denied" style="display:none;">
+    <p style="font-family:'Cormorant Garamond',serif;font-size:24px;margin-bottom:12px;">Clinician access only</p>
+    <p style="font-size:13px;color:var(--mid);">This account isn't set up as a clinician. If this is a mistake, add yourself to the <code>staff</code> table in Supabase.</p>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let allPatients = [];
+    let selectedPatientId = null;
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = 'login.html'; return; }
+
+      const { data: staffRow } = await supabase.from('staff').select('id').eq('id', session.user.id).maybeSingle();
+      if (!staffRow) {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('access-denied').style.display = 'block';
+        return;
+      }
+
+      await loadPatients();
+      document.getElementById('layout').style.display = 'grid';
+      document.getElementById('loading-screen').style.display = 'none';
+    }
+
+    async function loadPatients() {
+      const { data } = await supabase.from('profiles').select('id, full_name, subscription_tier').order('created_at', { ascending: false });
+      allPatients = data || [];
+      renderPatientList(allPatients);
+    }
+
+    function renderPatientList(list) {
+      const wrap = document.getElementById('patient-list');
+      wrap.innerHTML = '';
+      list.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'patient-item' + (p.id === selectedPatientId ? ' active' : '');
+        div.innerHTML = `<div><div class="patient-name"></div></div><span class="mini-badge ${p.subscription_tier === 'paid' ? 'paid' : ''}">${p.subscription_tier === 'paid' ? 'Member' : 'Free'}</span>`;
+        div.querySelector('.patient-name').textContent = p.full_name || '(No name set)';
+        div.addEventListener('click', () => selectPatient(p.id));
+        wrap.appendChild(div);
+      });
+    }
+
+    document.getElementById('patient-search').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      renderPatientList(allPatients.filter(p => (p.full_name || '').toLowerCase().includes(q)));
+    });
+
+    async function selectPatient(id) {
+      selectedPatientId = id;
+      renderPatientList(allPatients.filter(p => document.getElementById('patient-search').value ?
+        (p.full_name || '').toLowerCase().includes(document.getElementById('patient-search').value.toLowerCase()) : true));
+
+      const patient = allPatients.find(p => p.id === id);
+      const { data: planData } = await supabase.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: notesData } = await supabase.from('visit_notes').select('*').eq('patient_id', id).order('visit_date', { ascending: false });
+
+      const wrap = document.getElementById('detail-wrap');
+      wrap.innerHTML = `
+        <div class="panel" style="margin-bottom:20px;">
+          <h2 class="panel-title"></h2>
+          <div class="field-row">
+            <div>
+              <label>Membership Tier</label>
+              <select id="tier-select">
+                <option value="free">Free</option>
+                <option value="paid">Paid Member</option>
+              </select>
+            </div>
+            <div>
+              <label>Next Visit Date</label>
+              <input type="date" id="visit-date-input" />
+            </div>
+          </div>
+          <button class="btn-sage" id="save-tier-btn">Save</button>
+          <div class="msg" id="tier-msg"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px;">
+          <h2 class="panel-title">Plan</h2>
+          <label>Status</label>
+          <select id="plan-status-select">
+            <option value="ai_draft">AI Draft (unreviewed)</option>
+            <option value="reviewed">Reviewed by Clinician</option>
+          </select>
+          <label>Plan Content</label>
+          <textarea id="plan-textarea" placeholder="Paste or write the plan here…"></textarea>
+          <button class="btn-sage" id="save-plan-btn">Save Plan</button>
+          <div class="msg" id="plan-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">Follow-Up Notes</h2>
+          <label>Visit Date</label>
+          <input type="date" id="note-date-input" />
+          <label>Note</label>
+          <textarea id="note-textarea" placeholder="What was discussed, changes made to the plan, etc."></textarea>
+          <button class="btn-sage" id="save-note-btn">Add Note</button>
+          <div class="msg" id="note-msg"></div>
+          <div id="notes-history" style="margin-top:20px;"></div>
+        </div>
+      `;
+      wrap.querySelector('.panel-title').textContent = patient.full_name || '(No name set)';
+      document.getElementById('tier-select').value = patient.subscription_tier;
+      document.getElementById('visit-date-input').value = patient.next_visit_date || '';
+      document.getElementById('plan-status-select').value = planData ? planData.status : 'ai_draft';
+      document.getElementById('plan-textarea').value = planData ? planData.content : '';
+      document.getElementById('note-date-input').valueAsDate = new Date();
+
+      const historyWrap = document.getElementById('notes-history');
+      if (notesData && notesData.length) {
+        notesData.forEach(n => {
+          const div = document.createElement('div');
+          div.className = 'note-item';
+          div.innerHTML = `<div class="note-date"></div><div></div>`;
+          div.children[0].textContent = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+          div.children[1].textContent = n.content;
+          historyWrap.appendChild(div);
+        });
+      }
+
+      document.getElementById('save-tier-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-tier-btn');
+        const msg = document.getElementById('tier-msg');
+        btn.disabled = true;
+        const { error } = await supabase.from('profiles').update({
+          subscription_tier: document.getElementById('tier-select').value,
+          next_visit_date: document.getElementById('visit-date-input').value || null,
+        }).eq('id', id);
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Saved.';
+        if (!error) await loadPatients();
+      });
+
+      document.getElementById('save-plan-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-plan-btn');
+        const msg = document.getElementById('plan-msg');
+        btn.disabled = true;
+        const payload = {
+          patient_id: id,
+          content: document.getElementById('plan-textarea').value,
+          status: document.getElementById('plan-status-select').value,
+          reviewed_by: document.getElementById('plan-status-select').value === 'reviewed' ? (await supabase.auth.getUser()).data.user.id : null,
+          updated_at: new Date().toISOString(),
+        };
+        let error;
+        if (planData) {
+          ({ error } = await supabase.from('plans').update(payload).eq('id', planData.id));
+        } else {
+          ({ error } = await supabase.from('plans').insert(payload));
+        }
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Plan saved.';
+      });
+
+      document.getElementById('save-note-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-note-btn');
+        const msg = document.getElementById('note-msg');
+        const content = document.getElementById('note-textarea').value.trim();
+        if (!content) return;
+        btn.disabled = true;
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase.from('visit_notes').insert({
+          patient_id: id,
+          visit_date: document.getElementById('note-date-input').value,
+          content,
+          created_by: userData.user.id,
+        });
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Note added.';
+        if (!error) selectPatient(id);
+      });
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = 'login.html';
+    });
+
+    init();
+  </script>
+
+</body>
+</html>
