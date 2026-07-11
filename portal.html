@@ -56,6 +56,17 @@
 
     .plan-content{font-size:14px;line-height:1.85;color:var(--charcoal);white-space:pre-wrap;}
     .plan-disclaimer{margin-top:20px;padding:14px 16px;background:var(--cream);border-left:3px solid var(--sage-light);font-size:12px;color:var(--mid);line-height:1.7;}
+    .plan-section{margin-bottom:30px;}
+    .plan-section:last-child{margin-bottom:0;}
+    .plan-section-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;color:var(--sage-deep);margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--sage-light);}
+    .plan-section-body{font-size:14px;line-height:1.85;color:var(--charcoal);white-space:pre-wrap;}
+    .plan-empty-state{color:var(--mid);font-size:13px;text-align:center;padding:50px 20px;}
+    .snapshot-cta{text-align:center;padding:50px 24px;}
+    .snapshot-cta-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--charcoal);margin-bottom:12px;}
+    .snapshot-cta-body{font-size:13px;color:var(--mid);line-height:1.7;max-width:420px;margin:0 auto 24px;}
+    .plan-category{margin-bottom:44px;}
+    .plan-category:last-child{margin-bottom:0;}
+    .plan-category-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--charcoal);margin-bottom:18px;}
 
     .visit-info{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:8px;}
     .visit-stat{}
@@ -131,6 +142,7 @@
 
   <div class="tab-nav" id="tab-nav">
     <button class="page-tab active" data-section="plan-section" id="plan-tab">Plan</button>
+    <button class="page-tab" data-section="snapshot-section" id="snapshot-tab" style="display:none;">Health Snapshot</button>
     <button class="page-tab" data-section="measurements-section">Measurements</button>
     <button class="page-tab" data-section="bloodwork-section" id="bw-tab" style="display:none;">Blood Work</button>
     <button class="page-tab" data-section="meds-section" id="meds-tab" style="display:none;">Medications</button>
@@ -159,6 +171,14 @@
         <p class="panel-sub">Notes from your consultations with the clinic.</p>
         <div id="notes-list"></div>
         <p class="empty-state" id="notes-empty" style="display:none;">No follow-up notes yet.</p>
+      </div>
+    </section>
+
+    <!-- ── HEALTH SNAPSHOT (paid) ── -->
+    <section class="section" id="snapshot-section">
+      <div class="panel">
+        <span class="status-pill" id="snapshot-status-pill"></span>
+        <div id="snapshot-content">Your health snapshot is being prepared — check back shortly.</div>
       </div>
     </section>
 
@@ -307,6 +327,7 @@
     // ── CONFIG ── replace with your actual Supabase project values
     const SUPABASE_URL = "https://hgcvzhkxbknrecgebwbp.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
+    const QUESTIONNAIRE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc4ZieYB2QkuUmMPMTLkTCzEVnK-VwgNGFS9ddu8hQFGurD-A/viewform?usp=header";
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -315,6 +336,96 @@
       resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)', fasting_glucose: 'Fasting Glucose (mg/dL)',
       steps: 'Daily Steps', waist_cm: 'Waist (cm)',
     };
+
+    // ── Shared category structure — matches the clinician editor exactly ──
+    const HEALTH_CATEGORIES = [
+      { key: 'profile_goals', title: 'Profile & Goals', plan: false, subcats: [
+        { key: 'demographics', title: 'Demographics' },
+        { key: 'goals_motivation', title: 'Health Goals & Motivation' },
+        { key: 'prior_attempts', title: 'Prior Attempts & Preferred Approach' },
+      ]},
+      { key: 'medical_family', title: 'Medical & Family History', plan: false, subcats: [
+        { key: 'diagnosed_conditions', title: 'Diagnosed Conditions & Treatment' },
+        { key: 'surgical_history', title: 'Surgical / Hospital History' },
+        { key: 'family_history', title: 'Family History' },
+      ]},
+      { key: 'nutrition', title: 'Nutrition', plan: true, subcats: [
+        { key: 'meal_pattern', title: 'Meal Pattern & Timing' },
+        { key: 'food_quality', title: 'Food Quality' },
+        { key: 'diet_approach', title: 'Diet Approach & Hydration' },
+        { key: 'emotional_eating', title: 'Emotional Eating' },
+      ]},
+      { key: 'movement', title: 'Movement & Exercise', plan: true, subcats: [
+        { key: 'activity_level', title: 'Activity Level & Types' },
+        { key: 'strength_training', title: 'Strength Training' },
+        { key: 'sedentary_time', title: 'Sedentary Time / Work Sitting' },
+      ]},
+      { key: 'sleep', title: 'Sleep & Recovery', plan: true, subcats: [
+        { key: 'sleep_duration', title: 'Sleep Duration & Timing' },
+        { key: 'sleep_quality', title: 'Sleep Quality & Issues' },
+        { key: 'recovery_speed', title: 'Recovery Speed' },
+      ]},
+      { key: 'stress_mental', title: 'Stress & Mental Wellbeing', plan: true, subcats: [
+        { key: 'stress_level', title: 'Stress Level & Sources' },
+        { key: 'coping', title: 'Coping Strategies' },
+        { key: 'social_connection', title: 'Social Connection & Support' },
+        { key: 'cognitive_engagement', title: 'Cognitive Engagement' },
+      ]},
+      { key: 'functional_markers', title: 'Functional & Biological Age Markers', plan: false, subcats: [
+        { key: 'physical_function', title: 'Physical Function' },
+        { key: 'perceived_age', title: 'Perceived vs. Actual Age' },
+        { key: 'resting_hr', title: 'Resting Heart Rate' },
+      ]},
+      { key: 'skin_health', title: 'Skin Health', plan: true, subcats: [
+        { key: 'skin_concerns', title: 'Current Concerns' },
+        { key: 'sun_protection', title: 'Sun Protection Habits' },
+        { key: 'prior_treatments', title: 'Prior Treatments' },
+      ]},
+      { key: 'lab_history', title: 'Lab History', plan: false, subcats: [
+        { key: 'prior_findings', title: 'Prior Findings' },
+        { key: 'abnormal_results', title: 'Known Abnormal Results' },
+      ]},
+      { key: 'supplements_meds', title: 'Supplements & Medications', plan: true, subcats: [
+        { key: 'current_medications', title: 'Current Medications' },
+        { key: 'current_supplements', title: 'Current Supplements' },
+      ]},
+      { key: 'clinical_impression', title: 'Clinician\u2019s Clinical Impression', plan: false, subcats: [
+        { key: 'impression', title: 'Clinical Impression' },
+      ]},
+    ];
+    const PLAN_CATEGORIES = HEALTH_CATEGORIES.filter(c => c.plan);
+
+    function renderCategoryArticle(containerEl, categories, dataObj) {
+      containerEl.innerHTML = '';
+      let hasAnyContent = false;
+      categories.forEach(cat => {
+        const catData = (dataObj && dataObj[cat.key]) || {};
+        const filledSubs = cat.subcats.filter(sub => catData[sub.key] && catData[sub.key].trim());
+        if (filledSubs.length === 0) return;
+        hasAnyContent = true;
+        const catSection = document.createElement('div');
+        catSection.className = 'plan-category';
+        const catTitle = document.createElement('h2');
+        catTitle.className = 'plan-category-title';
+        catTitle.textContent = cat.title;
+        catSection.appendChild(catTitle);
+        filledSubs.forEach(sub => {
+          const subSection = document.createElement('div');
+          subSection.className = 'plan-section';
+          const h3 = document.createElement('h3');
+          h3.className = 'plan-section-title';
+          h3.textContent = sub.title;
+          const body = document.createElement('div');
+          body.className = 'plan-section-body';
+          body.textContent = catData[sub.key];
+          subSection.appendChild(h3);
+          subSection.appendChild(body);
+          catSection.appendChild(subSection);
+        });
+        containerEl.appendChild(catSection);
+      });
+      return hasAnyContent;
+    }
 
     let currentUser = null;
     let profile = null;
@@ -358,6 +469,7 @@
       if (profile.subscription_tier === 'paid') {
         document.getElementById('bw-tab').style.display = 'inline-block';
         document.getElementById('meds-tab').style.display = 'inline-block';
+        document.getElementById('snapshot-tab').style.display = 'inline-block';
         document.getElementById('notes-panel').style.display = 'block';
         if (profile.next_visit_date) {
           document.getElementById('visit-info-wrap').style.display = 'flex';
@@ -367,6 +479,7 @@
         loadNotes();
         loadBloodWork();
         loadMedications();
+        loadSnapshot();
         await loadPlan();
       } else {
         document.getElementById('promo-banner').style.display = 'block';
@@ -392,8 +505,14 @@
       const disclaimer = document.getElementById('plan-disclaimer');
       const heading = document.getElementById('plan-heading');
 
-      if (!data) {
-        content.textContent = 'Your plan is being prepared — check back shortly.';
+      const hasContent = data ? renderCategoryArticle(content, PLAN_CATEGORIES, data.content_json) : false;
+
+      if (!data || !hasContent) {
+        content.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'plan-empty-state';
+        empty.textContent = 'Your plan is being prepared — check back shortly.';
+        content.appendChild(empty);
         pill.style.display = 'none';
         disclaimer.style.display = 'none';
         return;
@@ -405,13 +524,43 @@
         pill.className = 'status-pill reviewed';
         disclaimer.style.display = 'none';
       } else {
-        heading.textContent = 'Your Wellness Snapshot';
-        pill.textContent = 'General wellness content';
+        heading.textContent = 'Your Plan';
+        pill.textContent = 'Draft \u2014 pending clinician review';
         pill.className = 'status-pill draft';
         disclaimer.style.display = 'block';
-        disclaimer.textContent = 'This snapshot is generated automatically and has not been reviewed by a physician. It\u2019s general wellness information, not personalised medical advice.';
+        disclaimer.textContent = 'This draft has not yet been reviewed by your clinician. Treat it as a starting point for your next visit, not a finalised plan.';
       }
-      content.textContent = data.content || 'Your plan is being prepared — check back shortly.';
+    }
+
+    async function loadSnapshot() {
+      const { data } = await supabaseClient.from('health_snapshots').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const pill = document.getElementById('snapshot-status-pill');
+      const content = document.getElementById('snapshot-content');
+
+      const hasContent = data ? renderCategoryArticle(content, HEALTH_CATEGORIES, data.content) : false;
+
+      if (!data || !hasContent) {
+        content.innerHTML = '';
+        const cta = document.createElement('div');
+        cta.className = 'snapshot-cta';
+        cta.innerHTML = `
+          <p class="snapshot-cta-title">Complete Your Health Questionnaire</p>
+          <p class="snapshot-cta-body">This detailed questionnaire helps your clinician build your Health Snapshot and prepare for your first review \u2014 it takes about 15\u201320 minutes.</p>
+          <a href="${QUESTIONNAIRE_URL}" target="_blank" rel="noopener" class="btn-sage" style="display:inline-block;text-decoration:none;">Start Questionnaire</a>
+        `;
+        content.appendChild(cta);
+        pill.style.display = 'none';
+        return;
+      }
+
+      pill.style.display = 'inline-block';
+      if (data.status === 'reviewed') {
+        pill.textContent = 'Reviewed by your clinician';
+        pill.className = 'status-pill reviewed';
+      } else {
+        pill.textContent = 'From your questionnaire \u2014 pending review';
+        pill.className = 'status-pill draft';
+      }
     }
 
     // ── Follow-up notes ──

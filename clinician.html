@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
     :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;--attention:#C47A6A;--attention-bg:#F8EAE8;--good:#7A9068;--good-bg:#EEF2EA;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -56,6 +57,25 @@
 
     .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
     .note-item{padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;}
+    .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+    .tab-btn{background:var(--cream);border:1px solid var(--line);color:var(--mid);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 13px;cursor:pointer;transition:all 0.2s;}
+    .tab-btn.active{background:var(--sage);border-color:var(--sage);color:var(--white);}
+    .chart-wrap{position:relative;height:260px;}
+    table.data-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;}
+    table.data-table th{text-align:left;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);padding:8px 10px;border-bottom:1px solid var(--line);}
+    table.data-table td{padding:10px;border-bottom:1px solid var(--cream-dark);color:var(--charcoal);}
+    .med-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;}
+    .med-item:last-child{border-bottom:none;}
+    .med-detail{font-size:11px;color:var(--mid);margin-top:2px;}
+    .cat-details{border:1px solid var(--line);margin-bottom:10px;background:var(--white);}
+    .cat-summary{padding:13px 16px;cursor:pointer;font-family:'Jost',sans-serif;font-size:13px;color:var(--charcoal);background:var(--cream);list-style:none;}
+    .cat-summary::-webkit-details-marker{display:none;}
+    .cat-summary::before{content:'\25B8  ';color:var(--sage);}
+    .cat-details[open] .cat-summary::before{content:'\25BE  ';}
+    .cat-body{padding:16px;}
+    .cat-body label{margin-top:14px;}
+    .cat-body label:first-child{margin-top:0;}
+    .cat-body textarea{min-height:70px;}
     .note-item:last-child{border-bottom:none;}
     .note-date{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:4px;}
 
@@ -108,7 +128,115 @@
     const SUPABASE_ANON_KEY = "sb_publishable_F6OrgM1uH6SErmE6uw40XA_z3nWr-KK";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    const METRIC_LABELS = {
+      weight_kg: 'Weight (kg)', systolic_bp: 'Systolic BP (mmHg)', diastolic_bp: 'Diastolic BP (mmHg)',
+      resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)', fasting_glucose: 'Fasting Glucose (mg/dL)',
+      steps: 'Daily Steps', waist_cm: 'Waist (cm)',
+    };
+
+    // ── Shared category structure — used for both the Health Snapshot
+    // (all categories) and the Plan (only categories marked plan:true) ──
+    const HEALTH_CATEGORIES = [
+      { key: 'profile_goals', title: 'Profile & Goals', plan: false, subcats: [
+        { key: 'demographics', title: 'Demographics' },
+        { key: 'goals_motivation', title: 'Health Goals & Motivation' },
+        { key: 'prior_attempts', title: 'Prior Attempts & Preferred Approach' },
+      ]},
+      { key: 'medical_family', title: 'Medical & Family History', plan: false, subcats: [
+        { key: 'diagnosed_conditions', title: 'Diagnosed Conditions & Treatment' },
+        { key: 'surgical_history', title: 'Surgical / Hospital History' },
+        { key: 'family_history', title: 'Family History' },
+      ]},
+      { key: 'nutrition', title: 'Nutrition', plan: true, subcats: [
+        { key: 'meal_pattern', title: 'Meal Pattern & Timing' },
+        { key: 'food_quality', title: 'Food Quality' },
+        { key: 'diet_approach', title: 'Diet Approach & Hydration' },
+        { key: 'emotional_eating', title: 'Emotional Eating' },
+      ]},
+      { key: 'movement', title: 'Movement & Exercise', plan: true, subcats: [
+        { key: 'activity_level', title: 'Activity Level & Types' },
+        { key: 'strength_training', title: 'Strength Training' },
+        { key: 'sedentary_time', title: 'Sedentary Time / Work Sitting' },
+      ]},
+      { key: 'sleep', title: 'Sleep & Recovery', plan: true, subcats: [
+        { key: 'sleep_duration', title: 'Sleep Duration & Timing' },
+        { key: 'sleep_quality', title: 'Sleep Quality & Issues' },
+        { key: 'recovery_speed', title: 'Recovery Speed' },
+      ]},
+      { key: 'stress_mental', title: 'Stress & Mental Wellbeing', plan: true, subcats: [
+        { key: 'stress_level', title: 'Stress Level & Sources' },
+        { key: 'coping', title: 'Coping Strategies' },
+        { key: 'social_connection', title: 'Social Connection & Support' },
+        { key: 'cognitive_engagement', title: 'Cognitive Engagement' },
+      ]},
+      { key: 'functional_markers', title: 'Functional & Biological Age Markers', plan: false, subcats: [
+        { key: 'physical_function', title: 'Physical Function' },
+        { key: 'perceived_age', title: 'Perceived vs. Actual Age' },
+        { key: 'resting_hr', title: 'Resting Heart Rate' },
+      ]},
+      { key: 'skin_health', title: 'Skin Health', plan: true, subcats: [
+        { key: 'skin_concerns', title: 'Current Concerns' },
+        { key: 'sun_protection', title: 'Sun Protection Habits' },
+        { key: 'prior_treatments', title: 'Prior Treatments' },
+      ]},
+      { key: 'lab_history', title: 'Lab History', plan: false, subcats: [
+        { key: 'prior_findings', title: 'Prior Findings' },
+        { key: 'abnormal_results', title: 'Known Abnormal Results' },
+      ]},
+      { key: 'supplements_meds', title: 'Supplements & Medications', plan: true, subcats: [
+        { key: 'current_medications', title: 'Current Medications' },
+        { key: 'current_supplements', title: 'Current Supplements' },
+      ]},
+      { key: 'clinical_impression', title: 'Clinician\u2019s Clinical Impression', plan: false, subcats: [
+        { key: 'impression', title: 'Clinical Impression' },
+      ]},
+    ];
+    const PLAN_CATEGORIES = HEALTH_CATEGORIES.filter(c => c.plan);
+
+    function buildCategoryFields(containerEl, categories, idPrefix, dataObj) {
+      containerEl.innerHTML = '';
+      categories.forEach(cat => {
+        const details = document.createElement('details');
+        details.className = 'cat-details';
+        const summary = document.createElement('summary');
+        summary.className = 'cat-summary';
+        summary.textContent = cat.title;
+        details.appendChild(summary);
+        const body = document.createElement('div');
+        body.className = 'cat-body';
+        cat.subcats.forEach(sub => {
+          const label = document.createElement('label');
+          label.textContent = sub.title;
+          const textarea = document.createElement('textarea');
+          textarea.id = `${idPrefix}-${cat.key}-${sub.key}`;
+          textarea.value = (dataObj && dataObj[cat.key] && dataObj[cat.key][sub.key]) || '';
+          body.appendChild(label);
+          body.appendChild(textarea);
+        });
+        details.appendChild(body);
+        containerEl.appendChild(details);
+      });
+    }
+
+    function collectCategoryFields(categories, idPrefix) {
+      const result = {};
+      categories.forEach(cat => {
+        result[cat.key] = {};
+        cat.subcats.forEach(sub => {
+          const el = document.getElementById(`${idPrefix}-${cat.key}-${sub.key}`);
+          result[cat.key][sub.key] = el ? el.value : '';
+        });
+      });
+      return result;
+    }
+
     let allPatients = [];
+    let clMetricChart = null;
+    let clBwChart = null;
+    let clMeasurementsData = [];
+    let clBloodWorkData = [];
+    let clActiveMetric = 'weight_kg';
+    let clActiveBwTest = null;
     let selectedPatientId = null;
 
     async function init() {
@@ -165,6 +293,7 @@
 
       const patient = allPatients.find(p => p.id === id);
       const { data: planData } = await supabaseClient.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: snapshotData } = await supabaseClient.from('health_snapshots').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
       const { data: notesData } = await supabaseClient.from('visit_notes').select('*').eq('patient_id', id).order('visit_date', { ascending: false });
 
       const wrap = document.getElementById('detail-wrap');
@@ -192,15 +321,28 @@
         </div>
 
         <div class="panel" style="margin-bottom:20px;">
+          <h2 class="panel-title">Health Snapshot</h2>
+          <label>Status</label>
+          <select id="snapshot-status-select">
+            <option value="ai_draft">AI Draft (from questionnaire, unreviewed)</option>
+            <option value="reviewed">Reviewed by Clinician</option>
+          </select>
+          <p style="font-size:11px;color:var(--mid);margin:14px 0 4px;">Populated from the patient's intake questionnaire. Add your own clinical impression under that category at the bottom.</p>
+          <div id="snapshot-fields"></div>
+          <button class="btn-sage" id="save-snapshot-btn" style="margin-top:16px;">Save Snapshot</button>
+          <div class="msg" id="snapshot-msg"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px;">
           <h2 class="panel-title">Plan</h2>
           <label>Status</label>
           <select id="plan-status-select">
             <option value="ai_draft">AI Draft (unreviewed)</option>
             <option value="reviewed">Reviewed by Clinician</option>
           </select>
-          <label>Plan Content</label>
-          <textarea id="plan-textarea" placeholder="Paste or write the plan here…"></textarea>
-          <button class="btn-sage" id="save-plan-btn">Save Plan</button>
+          <p style="font-size:11px;color:var(--mid);margin:14px 0 4px;">Click a category to expand it and write your recommendations. Categories match the patient's Health Snapshot below, so they can see exactly what's changed.</p>
+          <div id="plan-fields"></div>
+          <button class="btn-sage" id="save-plan-btn" style="margin-top:16px;">Save Plan</button>
           <div class="msg" id="plan-msg"></div>
         </div>
 
@@ -213,6 +355,26 @@
           <button class="btn-sage" id="save-note-btn">Add Note</button>
           <div class="msg" id="note-msg"></div>
           <div id="notes-history" style="margin-top:20px;"></div>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Measurements</h2>
+          <div class="tabs" id="cl-metric-tabs"></div>
+          <div class="chart-wrap"><canvas id="cl-metric-chart"></canvas></div>
+          <p class="empty-detail" id="cl-metric-empty" style="display:none;padding:30px 0;">No measurements logged yet.</p>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Blood Work</h2>
+          <div class="tabs" id="cl-bw-tabs"></div>
+          <div class="chart-wrap"><canvas id="cl-bw-chart"></canvas></div>
+          <p class="empty-detail" id="cl-bw-empty" style="display:none;padding:30px 0;">No blood work logged yet.</p>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Medications & Supplements</h2>
+          <div id="cl-med-list"></div>
+          <p class="empty-detail" id="cl-med-empty" style="display:none;padding:30px 0;">None on file.</p>
         </div>
       `;
       wrap.querySelector('.panel-title').textContent = patient.full_name || patient.email || '(No name set)';
@@ -231,7 +393,9 @@
       document.getElementById('tier-select').value = patient.subscription_tier;
       document.getElementById('visit-date-input').value = patient.next_visit_date || '';
       document.getElementById('plan-status-select').value = planData ? planData.status : 'ai_draft';
-      document.getElementById('plan-textarea').value = planData ? planData.content : '';
+      buildCategoryFields(document.getElementById('plan-fields'), PLAN_CATEGORIES, 'plan', planData ? planData.content_json : {});
+      document.getElementById('snapshot-status-select').value = snapshotData ? snapshotData.status : 'ai_draft';
+      buildCategoryFields(document.getElementById('snapshot-fields'), HEALTH_CATEGORIES, 'snap', snapshotData ? snapshotData.content : {});
       document.getElementById('note-date-input').valueAsDate = new Date();
 
       const historyWrap = document.getElementById('notes-history');
@@ -270,7 +434,7 @@
         btn.disabled = true;
         const payload = {
           patient_id: id,
-          content: document.getElementById('plan-textarea').value,
+          content_json: collectCategoryFields(PLAN_CATEGORIES, 'plan'),
           status: document.getElementById('plan-status-select').value,
           reviewed_by: document.getElementById('plan-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
@@ -284,6 +448,28 @@
         btn.disabled = false;
         msg.className = 'msg show ' + (error ? 'error' : 'success');
         msg.textContent = error ? error.message : 'Plan saved.';
+      });
+
+      document.getElementById('save-snapshot-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-snapshot-btn');
+        const msg = document.getElementById('snapshot-msg');
+        btn.disabled = true;
+        const payload = {
+          patient_id: id,
+          content: collectCategoryFields(HEALTH_CATEGORIES, 'snap'),
+          status: document.getElementById('snapshot-status-select').value,
+          reviewed_by: document.getElementById('snapshot-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
+          updated_at: new Date().toISOString(),
+        };
+        let error;
+        if (snapshotData) {
+          ({ error } = await supabaseClient.from('health_snapshots').update(payload).eq('id', snapshotData.id));
+        } else {
+          ({ error } = await supabaseClient.from('health_snapshots').insert(payload));
+        }
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Snapshot saved.';
       });
 
       document.getElementById('save-note-btn').addEventListener('click', async () => {
@@ -303,6 +489,117 @@
         msg.className = 'msg show ' + (error ? 'error' : 'success');
         msg.textContent = error ? error.message : 'Note added.';
         if (!error) selectPatient(id);
+      });
+
+      renderClinicianMeasurements(id);
+      renderClinicianBloodWork(id);
+      renderClinicianMedications(id);
+    }
+
+    async function renderClinicianMeasurements(patientId) {
+      const { data } = await supabaseClient.from('measurements').select('*').eq('patient_id', patientId).order('recorded_at', { ascending: true });
+      clMeasurementsData = data || [];
+      const tabsWrap = document.getElementById('cl-metric-tabs');
+      const canvas = document.getElementById('cl-metric-chart');
+      const empty = document.getElementById('cl-metric-empty');
+      tabsWrap.innerHTML = '';
+
+      if (clMeasurementsData.length === 0) {
+        empty.style.display = 'block'; canvas.style.display = 'none';
+        if (clMetricChart) { clMetricChart.destroy(); clMetricChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block';
+
+      const metricsPresent = [...new Set(clMeasurementsData.map(m => m.metric))];
+      if (!clActiveMetric || !metricsPresent.includes(clActiveMetric)) clActiveMetric = metricsPresent[0];
+
+      metricsPresent.forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (key === clActiveMetric ? ' active' : '');
+        btn.textContent = (METRIC_LABELS[key] || key).split(' (')[0];
+        btn.addEventListener('click', () => { clActiveMetric = key; drawClinicianMetricChart(); });
+        tabsWrap.appendChild(btn);
+      });
+      drawClinicianMetricChart();
+    }
+
+    function drawClinicianMetricChart() {
+      document.querySelectorAll('#cl-metric-tabs .tab-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === (METRIC_LABELS[clActiveMetric] || clActiveMetric).split(' (')[0]);
+      });
+      const entries = clMeasurementsData.filter(m => m.metric === clActiveMetric);
+      const canvas = document.getElementById('cl-metric-chart');
+      if (clMetricChart) clMetricChart.destroy();
+      clMetricChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.recorded_at), datasets: [{
+          label: METRIC_LABELS[clActiveMetric] || clActiveMetric, data: entries.map(e => e.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+    }
+
+    async function renderClinicianBloodWork(patientId) {
+      const { data } = await supabaseClient.from('blood_work').select('*').eq('patient_id', patientId).order('test_date', { ascending: true });
+      clBloodWorkData = data || [];
+      const tabsWrap = document.getElementById('cl-bw-tabs');
+      const canvas = document.getElementById('cl-bw-chart');
+      const empty = document.getElementById('cl-bw-empty');
+      tabsWrap.innerHTML = '';
+
+      if (clBloodWorkData.length === 0) {
+        empty.style.display = 'block'; canvas.style.display = 'none';
+        if (clBwChart) { clBwChart.destroy(); clBwChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block';
+
+      const testsPresent = [...new Set(clBloodWorkData.map(r => r.test_name))];
+      if (!clActiveBwTest || !testsPresent.includes(clActiveBwTest)) clActiveBwTest = testsPresent[0];
+
+      testsPresent.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (name === clActiveBwTest ? ' active' : '');
+        btn.textContent = name;
+        btn.addEventListener('click', () => { clActiveBwTest = name; drawClinicianBwChart(); });
+        tabsWrap.appendChild(btn);
+      });
+      drawClinicianBwChart();
+    }
+
+    function drawClinicianBwChart() {
+      document.querySelectorAll('#cl-bw-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === clActiveBwTest));
+      const entries = clBloodWorkData.filter(r => r.test_name === clActiveBwTest);
+      const canvas = document.getElementById('cl-bw-chart');
+      if (clBwChart) clBwChart.destroy();
+      clBwChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.test_date), datasets: [{
+          label: clActiveBwTest, data: entries.map(e => e.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+    }
+
+    async function renderClinicianMedications(patientId) {
+      const { data } = await supabaseClient.from('medications').select('*').eq('patient_id', patientId).eq('active', true).order('added_at', { ascending: false });
+      const list = document.getElementById('cl-med-list');
+      const empty = document.getElementById('cl-med-empty');
+      list.innerHTML = '';
+      if (!data || data.length === 0) { empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      data.forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'med-item';
+        div.innerHTML = `<div><div></div><div class="med-detail"></div></div>`;
+        div.children[0].children[0].textContent = m.name;
+        div.children[0].children[1].textContent = [m.dosage, m.frequency].filter(Boolean).join(' \u00b7 ');
+        list.appendChild(div);
       });
     }
 
