@@ -260,6 +260,27 @@
     <!-- ── ACCOUNT ── -->
     <section class="section" id="account-section">
       <div class="panel">
+        <h2 class="panel-title">Your Details</h2>
+        <p style="font-size:12.5px;color:var(--mid);line-height:1.7;margin-bottom:20px;">Help your clinician recognise you — this also replaces your email in places like the clinician's patient list once it's filled in.</p>
+        <form id="details-form" style="max-width:400px;">
+          <label for="detail-name">Full name</label>
+          <input type="text" id="detail-name" placeholder="Your full name" />
+          <label for="detail-dob">Date of birth</label>
+          <input type="date" id="detail-dob" />
+          <label for="detail-gender">Gender</label>
+          <select id="detail-gender">
+            <option value="">Prefer not to say</option>
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+            <option value="Non-binary">Non-binary</option>
+            <option value="Other">Other</option>
+          </select>
+          <button type="submit" class="btn-sage" id="details-btn">Save Details</button>
+        </form>
+        <div class="msg" id="details-msg"></div>
+      </div>
+
+      <div class="panel">
         <h2 class="panel-title">Account Security</h2>
         <p style="font-size:12.5px;color:var(--mid);line-height:1.7;margin-bottom:20px;">Set a password so you can sign in directly next time, instead of waiting for an email link. This is optional — your email link will keep working either way.</p>
         <form id="password-form" style="max-width:340px;">
@@ -318,6 +339,9 @@
       badgeWrap.innerHTML = `<span class="tier-badge ${profile.subscription_tier === 'paid' ? 'paid' : ''}">${profile.subscription_tier === 'paid' ? 'Member' : 'Free'}</span>`;
 
       document.getElementById('recorded-date').valueAsDate = new Date();
+      document.getElementById('detail-name').value = profile.full_name || '';
+      document.getElementById('detail-dob').value = profile.date_of_birth || '';
+      document.getElementById('detail-gender').value = profile.gender || '';
       document.getElementById('bw-date').valueAsDate = new Date();
 
       if (profile.subscription_tier === 'paid') {
@@ -538,6 +562,27 @@
         msg.textContent = 'Added.'; msg.className = 'msg show success';
         document.getElementById('med-name').value = ''; document.getElementById('med-dosage').value = ''; document.getElementById('med-frequency').value = '';
         loadMedications();
+      }
+    });
+
+    // ── Your Details ──
+    document.getElementById('details-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('details-msg');
+      const btn = document.getElementById('details-btn');
+      const payload = {
+        full_name: document.getElementById('detail-name').value.trim() || null,
+        date_of_birth: document.getElementById('detail-dob').value || null,
+        gender: document.getElementById('detail-gender').value || null,
+      };
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const { error } = await supabaseClient.from('profiles').update(payload).eq('id', currentUser.id);
+      btn.disabled = false; btn.textContent = 'Save Details';
+      if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
+      else {
+        msg.textContent = 'Details saved.'; msg.className = 'msg show success';
+        profile.full_name = payload.full_name;
+        document.getElementById('welcome-name').textContent = payload.full_name || currentUser.email;
       }
     });
 

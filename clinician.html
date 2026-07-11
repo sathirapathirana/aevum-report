@@ -115,7 +115,7 @@
     }
 
     async function loadPatients() {
-      const { data } = await supabaseClient.from('profiles').select('id, full_name, subscription_tier').order('created_at', { ascending: false });
+      const { data } = await supabaseClient.from('profiles').select('id, full_name, subscription_tier, email, date_of_birth, gender').order('created_at', { ascending: false });
       allPatients = data || [];
       renderPatientList(allPatients);
     }
@@ -126,22 +126,29 @@
       list.forEach(p => {
         const div = document.createElement('div');
         div.className = 'patient-item' + (p.id === selectedPatientId ? ' active' : '');
-        div.innerHTML = `<div><div class="patient-name"></div></div><span class="mini-badge ${p.subscription_tier === 'paid' ? 'paid' : ''}">${p.subscription_tier === 'paid' ? 'Member' : 'Free'}</span>`;
-        div.querySelector('.patient-name').textContent = p.full_name || '(No name set)';
+        const primary = p.full_name || p.email || '(No name set)';
+        const showEmailSubtitle = p.full_name && p.email;
+        div.innerHTML = `<div><div class="patient-name"></div>${showEmailSubtitle ? '<div class="patient-email"></div>' : ''}</div><span class="mini-badge ${p.subscription_tier === 'paid' ? 'paid' : ''}">${p.subscription_tier === 'paid' ? 'Member' : 'Free'}</span>`;
+        div.querySelector('.patient-name').textContent = primary;
+        if (showEmailSubtitle) div.querySelector('.patient-email').textContent = p.email;
         div.addEventListener('click', () => selectPatient(p.id));
         wrap.appendChild(div);
       });
     }
 
+    function matchesSearch(p, q) {
+      return (p.full_name || '').toLowerCase().includes(q) || (p.email || '').toLowerCase().includes(q);
+    }
+
     document.getElementById('patient-search').addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase();
-      renderPatientList(allPatients.filter(p => (p.full_name || '').toLowerCase().includes(q)));
+      renderPatientList(allPatients.filter(p => matchesSearch(p, q)));
     });
 
     async function selectPatient(id) {
       selectedPatientId = id;
-      renderPatientList(allPatients.filter(p => document.getElementById('patient-search').value ?
-        (p.full_name || '').toLowerCase().includes(document.getElementById('patient-search').value.toLowerCase()) : true));
+      const currentSearch = document.getElementById('patient-search').value.toLowerCase();
+      renderPatientList(currentSearch ? allPatients.filter(p => matchesSearch(p, currentSearch)) : allPatients);
 
       const patient = allPatients.find(p => p.id === id);
       const { data: planData } = await supabaseClient.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
@@ -151,6 +158,9 @@
       wrap.innerHTML = `
         <div class="panel" style="margin-bottom:20px;">
           <h2 class="panel-title"></h2>
+          <p id="patient-meta-line" style="font-size:12px;color:var(--mid);margin-bottom:16px;"></p>
+          <label>Full Name</label>
+          <input type="text" id="name-input" placeholder="Patient's full name" />
           <div class="field-row">
             <div>
               <label>Membership Tier</label>
@@ -192,7 +202,19 @@
           <div id="notes-history" style="margin-top:20px;"></div>
         </div>
       `;
-      wrap.querySelector('.panel-title').textContent = patient.full_name || '(No name set)';
+      wrap.querySelector('.panel-title').textContent = patient.full_name || patient.email || '(No name set)';
+      {
+        const metaParts = [];
+        if (patient.email) metaParts.push(patient.email);
+        if (patient.date_of_birth) {
+          const dob = new Date(patient.date_of_birth + 'T00:00:00');
+          const age = Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+          metaParts.push(age + ' yrs (' + dob.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ')');
+        }
+        if (patient.gender) metaParts.push(patient.gender);
+        document.getElementById('patient-meta-line').textContent = metaParts.join(' · ') || 'No additional details on file yet';
+      }
+      document.getElementById('name-input').value = patient.full_name || '';
       document.getElementById('tier-select').value = patient.subscription_tier;
       document.getElementById('visit-date-input').value = patient.next_visit_date || '';
       document.getElementById('plan-status-select').value = planData ? planData.status : 'ai_draft';
@@ -216,13 +238,17 @@
         const msg = document.getElementById('tier-msg');
         btn.disabled = true;
         const { error } = await supabaseClient.from('profiles').update({
+          full_name: document.getElementById('name-input').value.trim() || null,
           subscription_tier: document.getElementById('tier-select').value,
           next_visit_date: document.getElementById('visit-date-input').value || null,
         }).eq('id', id);
         btn.disabled = false;
         msg.className = 'msg show ' + (error ? 'error' : 'success');
         msg.textContent = error ? error.message : 'Saved.';
-        if (!error) await loadPatients();
+        if (!error) {
+          await loadPatients();
+          wrap.querySelector('.panel-title').textContent = document.getElementById('name-input').value.trim() || patient.email || '(No name set)';
+        }
       });
 
       document.getElementById('save-plan-btn').addEventListener('click', async () => {
