@@ -130,7 +130,7 @@
   </div>
 
   <div class="tab-nav" id="tab-nav">
-    <button class="page-tab active" data-section="plan-section">Plan</button>
+    <button class="page-tab active" data-section="plan-section" id="plan-tab">Plan</button>
     <button class="page-tab" data-section="measurements-section">Measurements</button>
     <button class="page-tab" data-section="bloodwork-section" id="bw-tab" style="display:none;">Blood Work</button>
     <button class="page-tab" data-section="meds-section" id="meds-tab" style="display:none;">Medications</button>
@@ -201,31 +201,40 @@
     <!-- ── BLOOD WORK (paid) ── -->
     <section class="section" id="bloodwork-section">
       <div class="panel">
-        <h2 class="panel-title">Blood Work</h2>
+        <h2 class="panel-title" id="bw-form-title">Log a Result</h2>
         <p class="panel-sub">Log your lab results so your clinician can track them over time.</p>
         <form id="bloodwork-form" class="grid-2" style="align-items:end;">
           <div>
-            <label for="bw-test">Test name</label>
-            <input type="text" id="bw-test" required placeholder="e.g. Fasting Glucose" />
+            <label for="bw-test-select">Test</label>
+            <select id="bw-test-select" required></select>
+            <input type="text" id="bw-test-custom" placeholder="Test name" style="display:none;" />
             <label for="bw-value">Value</label>
             <input type="number" id="bw-value" step="0.01" required placeholder="e.g. 92" />
           </div>
           <div>
-            <label for="bw-unit">Unit</label>
-            <input type="text" id="bw-unit" placeholder="e.g. mg/dL" />
+            <label for="bw-unit-select">Unit</label>
+            <select id="bw-unit-select"></select>
+            <input type="text" id="bw-unit-custom" placeholder="Unit" style="display:none;" />
             <label for="bw-date">Test date</label>
             <input type="date" id="bw-date" required />
           </div>
           <button type="submit" class="btn-sage" id="bw-save-btn" style="grid-column:1/-1;">Add Result</button>
+          <button type="button" class="btn-quiet" id="bw-cancel-edit-btn" style="grid-column:1/-1;display:none;">Cancel Edit</button>
         </form>
         <div class="msg" id="bw-msg"></div>
       </div>
+
       <div class="panel">
-        <table class="data-table" id="bw-table">
-          <thead><tr><th>Date</th><th>Test</th><th>Value</th><th></th></tr></thead>
-          <tbody id="bw-tbody"></tbody>
-        </table>
-        <p class="empty-state" id="bw-empty" style="display:none;">No blood work logged yet.</p>
+        <h2 class="panel-title">Your Tests</h2>
+        <p class="panel-sub" id="bw-tests-empty">No results logged yet — add your first one above.</p>
+        <div class="tabs" id="bw-test-list"></div>
+        <div id="bw-detail-wrap" style="display:none;">
+          <div class="chart-wrap"><canvas id="bw-chart"></canvas></div>
+          <table class="data-table" id="bw-table" style="margin-top:20px;">
+            <thead><tr><th>Date</th><th>Value</th><th></th></tr></thead>
+            <tbody id="bw-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -310,6 +319,7 @@
     let currentUser = null;
     let profile = null;
     let chart = null;
+    let bwChart = null;
     let activeMetric = 'weight_kg';
 
     // ── Tab switching ──
@@ -343,6 +353,7 @@
       document.getElementById('detail-dob').value = profile.date_of_birth || '';
       document.getElementById('detail-gender').value = profile.gender || '';
       document.getElementById('bw-date').valueAsDate = new Date();
+      populateBwDropdowns();
 
       if (profile.subscription_tier === 'paid') {
         document.getElementById('bw-tab').style.display = 'inline-block';
@@ -356,11 +367,17 @@
         loadNotes();
         loadBloodWork();
         loadMedications();
+        await loadPlan();
       } else {
         document.getElementById('promo-banner').style.display = 'block';
+        // Free tier doesn't get a plan — hide the tab and default to Measurements
+        document.getElementById('plan-tab').style.display = 'none';
+        document.getElementById('plan-tab').classList.remove('active');
+        document.getElementById('plan-section').classList.remove('active');
+        document.querySelector('[data-section="measurements-section"]').classList.add('active');
+        document.getElementById('measurements-section').classList.add('active');
       }
 
-      await loadPlan();
       buildMetricTabs();
       await loadChart(activeMetric);
 
@@ -477,48 +494,211 @@
     });
 
     // ── Blood work ──
+    const COMMON_TESTS = {
+      'Fasting Glucose': 'mg/dL', 'HbA1c': '%', 'Total Cholesterol': 'mg/dL', 'LDL Cholesterol': 'mg/dL',
+      'HDL Cholesterol': 'mg/dL', 'Triglycerides': 'mg/dL', 'ApoB': 'mg/dL', 'Lp(a)': 'mg/dL',
+      'hs-CRP': 'mg/L', 'Vitamin D (25-OH)': 'ng/mL', 'Vitamin B12': 'pg/mL', 'Ferritin': 'ng/mL',
+      'TSH': 'mIU/L', 'Free T3': 'pg/mL', 'Free T4': 'ng/dL', 'Total Testosterone': 'ng/dL',
+      'Free Testosterone': 'pg/mL', 'Estradiol': 'pg/mL', 'Cortisol (AM)': '\u00b5g/dL',
+      'Fasting Insulin': '\u00b5IU/mL', 'ALT': 'U/L', 'AST': 'U/L', 'Creatinine': 'mg/dL',
+      'eGFR': 'mL/min/1.73m\u00b2', 'Uric Acid': 'mg/dL', 'Homocysteine': '\u00b5mol/L',
+      'Magnesium (RBC)': 'mg/dL', 'Zinc': '\u00b5g/dL', 'DHEA-S': '\u00b5g/dL',
+    };
+    const COMMON_UNITS = ['mg/dL', 'mmol/L', '%', 'ng/mL', 'pg/mL', 'IU/L', 'U/L', 'mIU/L', '\u00b5IU/mL', 'ng/dL', 'pmol/L', 'mL/min/1.73m\u00b2', '\u00b5g/dL', '\u00b5mol/L', 'g/dL'];
+
+    function populateBwDropdowns() {
+      const testSelect = document.getElementById('bw-test-select');
+      Object.keys(COMMON_TESTS).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        testSelect.appendChild(opt);
+      });
+      const otherTestOpt = document.createElement('option');
+      otherTestOpt.value = '__other__'; otherTestOpt.textContent = 'Other (specify)';
+      testSelect.appendChild(otherTestOpt);
+
+      const unitSelect = document.getElementById('bw-unit-select');
+      COMMON_UNITS.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u; opt.textContent = u;
+        unitSelect.appendChild(opt);
+      });
+      const otherUnitOpt = document.createElement('option');
+      otherUnitOpt.value = '__other__'; otherUnitOpt.textContent = 'Other (specify)';
+      unitSelect.appendChild(otherUnitOpt);
+    }
+
+    document.getElementById('bw-test-select').addEventListener('change', (e) => {
+      const custom = document.getElementById('bw-test-custom');
+      if (e.target.value === '__other__') {
+        custom.style.display = 'block'; custom.required = true;
+      } else {
+        custom.style.display = 'none'; custom.required = false;
+        const defaultUnit = COMMON_TESTS[e.target.value];
+        if (defaultUnit) document.getElementById('bw-unit-select').value = defaultUnit;
+      }
+    });
+
+    document.getElementById('bw-unit-select').addEventListener('change', (e) => {
+      const custom = document.getElementById('bw-unit-custom');
+      custom.style.display = e.target.value === '__other__' ? 'block' : 'none';
+    });
+
+    let allBloodWork = [];
+    let activeBwTest = null;
+    let bwEditingId = null;
+
     async function loadBloodWork() {
-      const { data } = await supabaseClient.from('blood_work').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: false });
+      const { data } = await supabaseClient.from('blood_work').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: true });
+      allBloodWork = data || [];
+
+      const testListWrap = document.getElementById('bw-test-list');
+      const emptyMsg = document.getElementById('bw-tests-empty');
+      testListWrap.innerHTML = '';
+
+      if (allBloodWork.length === 0) {
+        emptyMsg.style.display = 'block';
+        document.getElementById('bw-detail-wrap').style.display = 'none';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+
+      // Distinct test names, ordered by most recent entry first
+      const testNames = [...new Set(allBloodWork.map(r => r.test_name))]
+        .sort((a, b) => {
+          const lastA = Math.max(...allBloodWork.filter(r => r.test_name === a).map(r => new Date(r.test_date).getTime()));
+          const lastB = Math.max(...allBloodWork.filter(r => r.test_name === b).map(r => new Date(r.test_date).getTime()));
+          return lastB - lastA;
+        });
+
+      if (!activeBwTest || !testNames.includes(activeBwTest)) activeBwTest = testNames[0];
+
+      testNames.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (name === activeBwTest ? ' active' : '');
+        btn.textContent = name;
+        btn.addEventListener('click', () => { activeBwTest = name; renderBwDetail(); });
+        testListWrap.appendChild(btn);
+      });
+
+      document.getElementById('bw-detail-wrap').style.display = 'block';
+      renderBwDetail();
+    }
+
+    function renderBwDetail() {
+      document.querySelectorAll('#bw-test-list .tab-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === activeBwTest);
+      });
+
+      const entries = allBloodWork.filter(r => r.test_name === activeBwTest).sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
+
+      const canvas = document.getElementById('bw-chart');
+      if (bwChart) bwChart.destroy();
+      bwChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.test_date), datasets: [{
+          label: activeBwTest, data: entries.map(e => e.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+
       const tbody = document.getElementById('bw-tbody');
-      const empty = document.getElementById('bw-empty');
       tbody.innerHTML = '';
-      if (!data || data.length === 0) { empty.style.display = 'block'; return; }
-      empty.style.display = 'none';
-      data.forEach(r => {
+      [...entries].reverse().forEach(r => {
         const tr = document.createElement('tr');
-        const dateStr = new Date(r.test_date + 'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
-        tr.innerHTML = `<td>${dateStr}</td><td></td><td>${r.value}${r.unit ? ' ' + r.unit : ''}</td><td class="row-actions"><button class="btn-quiet" data-id="${r.id}">Remove</button></td>`;
-        tr.children[1].textContent = r.test_name;
+        const dateStr = new Date(r.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        tr.innerHTML = `<td>${dateStr}</td><td>${r.value}${r.unit ? ' ' + r.unit : ''}</td><td class="row-actions"><button class="btn-quiet" data-action="edit" data-id="${r.id}">Edit</button> <button class="btn-quiet" data-action="delete" data-id="${r.id}">Delete</button></td>`;
         tbody.appendChild(tr);
       });
-      tbody.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async () => {
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(b => b.addEventListener('click', async () => {
         await supabaseClient.from('blood_work').delete().eq('id', b.dataset.id);
         loadBloodWork();
       }));
+      tbody.querySelectorAll('button[data-action="edit"]').forEach(b => b.addEventListener('click', () => {
+        const entry = allBloodWork.find(r => r.id === b.dataset.id);
+        startBwEdit(entry);
+      }));
     }
+
+    function startBwEdit(entry) {
+      bwEditingId = entry.id;
+      const testSelect = document.getElementById('bw-test-select');
+      const testCustom = document.getElementById('bw-test-custom');
+      const unitSelect = document.getElementById('bw-unit-select');
+      const unitCustom = document.getElementById('bw-unit-custom');
+
+      if (COMMON_TESTS.hasOwnProperty(entry.test_name)) {
+        testSelect.value = entry.test_name; testCustom.style.display = 'none'; testCustom.required = false;
+      } else {
+        testSelect.value = '__other__'; testCustom.style.display = 'block'; testCustom.required = true; testCustom.value = entry.test_name;
+      }
+      if (COMMON_UNITS.includes(entry.unit)) {
+        unitSelect.value = entry.unit; unitCustom.style.display = 'none';
+      } else {
+        unitSelect.value = '__other__'; unitCustom.style.display = 'block'; unitCustom.value = entry.unit || '';
+      }
+      document.getElementById('bw-value').value = entry.value;
+      document.getElementById('bw-date').value = entry.test_date;
+
+      document.getElementById('bw-form-title').textContent = 'Edit Result';
+      document.getElementById('bw-save-btn').textContent = 'Update Result';
+      document.getElementById('bw-cancel-edit-btn').style.display = 'inline-block';
+      document.getElementById('bloodwork-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetBwForm() {
+      bwEditingId = null;
+      document.getElementById('bloodwork-form').reset();
+      document.getElementById('bw-test-custom').style.display = 'none';
+      document.getElementById('bw-unit-custom').style.display = 'none';
+      document.getElementById('bw-date').valueAsDate = new Date();
+      document.getElementById('bw-form-title').textContent = 'Log a Result';
+      document.getElementById('bw-save-btn').textContent = 'Add Result';
+      document.getElementById('bw-cancel-edit-btn').style.display = 'none';
+    }
+
+    document.getElementById('bw-cancel-edit-btn').addEventListener('click', resetBwForm);
 
     document.getElementById('bloodwork-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msg = document.getElementById('bw-msg');
       const btn = document.getElementById('bw-save-btn');
+
+      const testSelectVal = document.getElementById('bw-test-select').value;
+      const testName = testSelectVal === '__other__' ? document.getElementById('bw-test-custom').value.trim() : testSelectVal;
+      const unitSelectVal = document.getElementById('bw-unit-select').value;
+      const unit = unitSelectVal === '__other__' ? document.getElementById('bw-unit-custom').value.trim() : unitSelectVal;
+
       const payload = {
-        patient_id: currentUser.id,
-        test_name: document.getElementById('bw-test').value.trim(),
+        test_name: testName,
         value: parseFloat(document.getElementById('bw-value').value),
-        unit: document.getElementById('bw-unit').value.trim(),
+        unit,
         test_date: document.getElementById('bw-date').value,
       };
       if (!payload.test_name || isNaN(payload.value)) return;
-      btn.disabled = true; btn.textContent = 'Saving…';
-      const { error } = await supabaseClient.from('blood_work').insert(payload);
-      btn.disabled = false; btn.textContent = 'Add Result';
-      if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
-      else {
-        msg.textContent = 'Result added.'; msg.className = 'msg show success';
-        document.getElementById('bw-test').value = ''; document.getElementById('bw-value').value = ''; document.getElementById('bw-unit').value = '';
+
+      btn.disabled = true; btn.textContent = bwEditingId ? 'Updating…' : 'Saving…';
+      let error;
+      if (bwEditingId) {
+        ({ error } = await supabaseClient.from('blood_work').update(payload).eq('id', bwEditingId));
+      } else {
+        ({ error } = await supabaseClient.from('blood_work').insert({ ...payload, patient_id: currentUser.id }));
+      }
+      btn.disabled = false;
+
+      if (error) {
+        msg.textContent = error.message; msg.className = 'msg show error';
+        btn.textContent = bwEditingId ? 'Update Result' : 'Add Result';
+      } else {
+        msg.textContent = bwEditingId ? 'Result updated.' : 'Result added.'; msg.className = 'msg show success';
+        activeBwTest = testName;
+        resetBwForm();
         loadBloodWork();
       }
     });
+
 
     // ── Medications ──
     async function loadMedications() {
