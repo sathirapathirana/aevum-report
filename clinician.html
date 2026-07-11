@@ -74,10 +74,23 @@
   </nav>
 
   <div class="layout" id="layout" style="display:none;">
-    <div class="panel">
-      <h2 class="panel-title">Patients</h2>
-      <input type="search" id="patient-search" placeholder="Search by name or email…" />
-      <div id="patient-list"></div>
+    <div>
+      <div class="panel" style="margin-bottom:20px;">
+        <h2 class="panel-title">Patients</h2>
+        <input type="search" id="patient-search" placeholder="Search by name or email…" />
+        <div id="patient-list"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Your Account</h2>
+        <p style="font-size:12px;color:var(--mid);line-height:1.6;margin-bottom:16px;">Set a password so you can sign in directly, instead of requesting an email link each time.</p>
+        <form id="clinician-password-form">
+          <label for="clinician-new-password">New password</label>
+          <input type="password" id="clinician-new-password" minlength="6" required placeholder="At least 6 characters" autocomplete="new-password" />
+          <button type="submit" class="btn-sage" id="clinician-password-btn">Set Password</button>
+        </form>
+        <div class="msg" id="clinician-password-msg"></div>
+      </div>
     </div>
 
     <div id="detail-wrap">
@@ -292,6 +305,22 @@
         if (!error) selectPatient(id);
       });
     }
+
+    document.getElementById('clinician-password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPassword = document.getElementById('clinician-new-password').value;
+      const msg = document.getElementById('clinician-password-msg');
+      const btn = document.getElementById('clinician-password-btn');
+      if (!newPassword || newPassword.length < 6) return;
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+      btn.disabled = false; btn.textContent = 'Set Password';
+      if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
+      else {
+        msg.textContent = 'Password set. You can use it to sign in next time.'; msg.className = 'msg show success';
+        document.getElementById('clinician-new-password').value = '';
+      }
+    });
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
