@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
   <style>
     :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;--attention:#C47A6A;--attention-bg:#F8EAE8;--good:#7A9068;--good-bg:#EEF2EA;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -67,6 +68,21 @@
     .plan-category{margin-bottom:44px;}
     .plan-category:last-child{margin-bottom:0;}
     .plan-category-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--charcoal);margin-bottom:18px;}
+    .sub-tab-nav{display:flex;gap:4px;margin-bottom:28px;border-bottom:1px solid var(--line);}
+    .sub-tab{background:none;border:none;padding:10px 18px;font-family:'Jost',sans-serif;font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
+    .sub-tab.active{color:var(--sage-deep);border-bottom-color:var(--sage);}
+    .sub-section{display:none;}
+    .sub-section.active{display:block;}
+    .goal-timeframe-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:8px;}
+    .goal-timeframe-col-label{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:6px;}
+    .patient-timeline{position:relative;padding-left:22px;}
+    .patient-timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line);}
+    .patient-timeline-item{position:relative;padding-bottom:26px;}
+    .patient-timeline-item:last-child{padding-bottom:0;}
+    .patient-timeline-item::before{content:'';position:absolute;left:-22px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--sage);}
+    .patient-timeline-date{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--charcoal);margin-bottom:8px;}
+    .patient-timeline-field{font-size:13px;line-height:1.7;margin-bottom:8px;color:var(--charcoal);}
+    .patient-timeline-field b{display:block;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);font-weight:400;margin-bottom:2px;}
 
     .visit-info{display:flex;gap:32px;flex-wrap:wrap;margin-bottom:8px;}
     .visit-stat{}
@@ -145,6 +161,8 @@
     <button class="page-tab" data-section="snapshot-section" id="snapshot-tab" style="display:none;">Health Snapshot</button>
     <button class="page-tab" data-section="measurements-section">Measurements</button>
     <button class="page-tab" data-section="bloodwork-section" id="bw-tab" style="display:none;">Blood Work</button>
+    <button class="page-tab" data-section="bodycomp-section" id="bodycomp-tab" style="display:none;">Body Composition</button>
+    <button class="page-tab" data-section="wellbeing-section" id="wellbeing-tab" style="display:none;">Wellbeing</button>
     <button class="page-tab" data-section="meds-section" id="meds-tab" style="display:none;">Medications</button>
     <button class="page-tab" data-section="account-section">Account</button>
   </div>
@@ -153,24 +171,45 @@
 
     <!-- ── PLAN ── -->
     <section class="section active" id="plan-section">
-      <div class="panel">
-        <h2 class="panel-title" id="plan-heading">Your Plan</h2>
-        <div id="visit-info-wrap" style="display:none;" class="visit-info">
-          <div class="visit-stat">
-            <div class="visit-stat-label">Next Visit</div>
-            <div class="visit-stat-value" id="next-visit-value">—</div>
-          </div>
+      <div id="visit-info-wrap" style="display:none;" class="visit-info">
+        <div class="visit-stat">
+          <div class="visit-stat-label">Next Visit</div>
+          <div class="visit-stat-value" id="next-visit-value">—</div>
         </div>
-        <span class="status-pill" id="plan-status-pill"></span>
-        <div class="plan-content" id="plan-content">Loading your plan…</div>
-        <div class="plan-disclaimer" id="plan-disclaimer"></div>
       </div>
 
-      <div class="panel" id="notes-panel" style="display:none;">
-        <h2 class="panel-title">Follow-Up Notes</h2>
-        <p class="panel-sub">Notes from your consultations with the clinic.</p>
-        <div id="notes-list"></div>
-        <p class="empty-state" id="notes-empty" style="display:none;">No follow-up notes yet.</p>
+      <div class="sub-tab-nav">
+        <button class="sub-tab active" data-subsection="goals-subsection">Goals</button>
+        <button class="sub-tab" data-subsection="actions-subsection">Actions</button>
+        <button class="sub-tab" data-subsection="followup-subsection">Follow-Up</button>
+      </div>
+
+      <div class="sub-section active" id="goals-subsection">
+        <div class="panel">
+          <h2 class="panel-title">Your Goals</h2>
+          <span class="status-pill" id="goals-status-pill"></span>
+          <div id="goals-content">Your goals are being prepared — check back shortly.</div>
+        </div>
+      </div>
+
+      <div class="sub-section" id="actions-subsection">
+        <div class="panel">
+          <h2 class="panel-title">Your Actions</h2>
+          <span class="status-pill" id="actions-status-pill"></span>
+          <div id="actions-content">Your actions are being prepared — check back shortly.</div>
+        </div>
+        <div class="panel" id="pdf-panel" style="display:none;">
+          <button class="btn-sage" id="download-pdf-btn" style="width:100%;">Download Plan as PDF</button>
+        </div>
+      </div>
+
+      <div class="sub-section" id="followup-subsection">
+        <div class="panel">
+          <h2 class="panel-title">Follow-Up History</h2>
+          <p class="panel-sub">Notes from your consultations with the clinic.</p>
+          <div id="notes-timeline" class="patient-timeline"></div>
+          <p class="empty-state" id="notes-empty" style="display:none;">No follow-up notes yet.</p>
+        </div>
       </div>
     </section>
 
@@ -255,6 +294,43 @@
             <tbody id="bw-tbody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ── BODY COMPOSITION & FITNESS (paid, clinician-entered, read-only) ── -->
+    <section class="section" id="bodycomp-section">
+      <div class="panel">
+        <h2 class="panel-title">Body Composition & Fitness</h2>
+        <p class="panel-sub">Logged by your clinician after in-office assessments.</p>
+        <div class="tabs" id="bodycomp-test-list"></div>
+        <div id="bodycomp-detail-wrap" style="display:none;">
+          <div class="chart-wrap"><canvas id="bodycomp-chart"></canvas></div>
+          <table class="data-table" id="bodycomp-table" style="margin-top:20px;">
+            <thead><tr><th>Date</th><th>Value</th></tr></thead>
+            <tbody id="bodycomp-tbody"></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="bodycomp-empty" style="display:none;">No body composition data logged yet.</p>
+      </div>
+    </section>
+
+    <!-- ── WELLBEING SCORES (paid, patient self-entry) ── -->
+    <section class="section" id="wellbeing-section">
+      <div class="panel">
+        <h2 class="panel-title">Today's Check-In</h2>
+        <p class="panel-sub">Rate each from 1 (worst) to 10 (best). Takes under a minute.</p>
+        <form id="wellbeing-form">
+          <div id="wellbeing-sliders"></div>
+          <input type="date" id="wellbeing-date" style="display:none;" />
+          <button type="submit" class="btn-sage" id="wellbeing-save-btn" style="width:100%;margin-top:8px;">Save Today's Check-In</button>
+        </form>
+        <div class="msg" id="wellbeing-msg"></div>
+      </div>
+      <div class="panel">
+        <h2 class="panel-title">Your Trends</h2>
+        <div class="tabs" id="wellbeing-tabs"></div>
+        <div class="chart-wrap"><canvas id="wellbeing-chart"></canvas></div>
+        <p class="empty-state" id="wellbeing-empty" style="display:none;">Log your first check-in above to see trends.</p>
       </div>
     </section>
 
@@ -394,6 +470,78 @@
       ]},
     ];
     const PLAN_CATEGORIES = HEALTH_CATEGORIES.filter(c => c.plan);
+    const ACTIONS_CATEGORIES = PLAN_CATEGORIES;
+    const GOALS_EXTRA_CATEGORY = {
+      key: 'biomarkers', title: 'Biomarkers & Body Composition', subcats: [
+        { key: 'lab_targets', title: 'Lab Value Targets' },
+        { key: 'body_comp_targets', title: 'Body Composition Targets' },
+      ],
+    };
+    const GOALS_CATEGORIES = [GOALS_EXTRA_CATEGORY, ...ACTIONS_CATEGORIES];
+    const TIMEFRAMES = [
+      { key: 'three_month', title: '3-Month' },
+      { key: 'six_month', title: '6-Month' },
+      { key: 'one_year', title: '1-Year' },
+    ];
+
+    function renderGoalsArticle(containerEl, dataObj, primaryObjective) {
+      containerEl.innerHTML = '';
+      let hasAnyContent = false;
+
+      if (primaryObjective && primaryObjective.trim()) {
+        hasAnyContent = true;
+        const objDiv = document.createElement('div');
+        objDiv.className = 'plan-category';
+        objDiv.innerHTML = '<h2 class="plan-category-title">Primary Objective</h2><div class="plan-section-body"></div>';
+        objDiv.querySelector('.plan-section-body').textContent = primaryObjective;
+        containerEl.appendChild(objDiv);
+      }
+
+      GOALS_CATEGORIES.forEach(cat => {
+        const catData = (dataObj && dataObj[cat.key]) || {};
+        const filledSubs = cat.subcats.filter(sub => {
+          const s = catData[sub.key];
+          return s && (s.three_month || s.six_month || s.one_year);
+        });
+        if (filledSubs.length === 0) return;
+        hasAnyContent = true;
+        const catSection = document.createElement('div');
+        catSection.className = 'plan-category';
+        const catTitle = document.createElement('h2');
+        catTitle.className = 'plan-category-title';
+        catTitle.textContent = cat.title;
+        catSection.appendChild(catTitle);
+        filledSubs.forEach(sub => {
+          const subSection = document.createElement('div');
+          subSection.className = 'plan-section';
+          const h3 = document.createElement('h3');
+          h3.className = 'plan-section-title';
+          h3.textContent = sub.title;
+          subSection.appendChild(h3);
+          const grid = document.createElement('div');
+          grid.className = 'goal-timeframe-grid';
+          const s = catData[sub.key];
+          TIMEFRAMES.forEach(tf => {
+            if (!s[tf.key]) return;
+            const col = document.createElement('div');
+            const label = document.createElement('div');
+            label.className = 'goal-timeframe-col-label';
+            label.textContent = tf.title;
+            const body = document.createElement('div');
+            body.className = 'plan-section-body';
+            body.style.fontSize = '13px';
+            body.textContent = s[tf.key];
+            col.appendChild(label);
+            col.appendChild(body);
+            grid.appendChild(col);
+          });
+          subSection.appendChild(grid);
+          catSection.appendChild(subSection);
+        });
+        containerEl.appendChild(catSection);
+      });
+      return hasAnyContent;
+    }
 
     function renderCategoryArticle(containerEl, categories, dataObj) {
       containerEl.innerHTML = '';
@@ -443,6 +591,17 @@
       document.getElementById(btn.dataset.section).classList.add('active');
     });
 
+    document.querySelectorAll('.sub-tab-nav').forEach(nav => {
+      nav.addEventListener('click', (e) => {
+        const btn = e.target.closest('.sub-tab');
+        if (!btn) return;
+        nav.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+        nav.parentElement.querySelectorAll('.sub-section').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.dataset.subsection).classList.add('active');
+      });
+    });
+
     async function init() {
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) { window.location.href = 'login.html'; return; }
@@ -464,13 +623,16 @@
       document.getElementById('detail-dob').value = profile.date_of_birth || '';
       document.getElementById('detail-gender').value = profile.gender || '';
       document.getElementById('bw-date').valueAsDate = new Date();
+      document.getElementById('wellbeing-date').valueAsDate = new Date();
       populateBwDropdowns();
+      buildWellbeingSliders();
 
       if (profile.subscription_tier === 'paid') {
         document.getElementById('bw-tab').style.display = 'inline-block';
+        document.getElementById('bodycomp-tab').style.display = 'inline-block';
+        document.getElementById('wellbeing-tab').style.display = 'inline-block';
         document.getElementById('meds-tab').style.display = 'inline-block';
         document.getElementById('snapshot-tab').style.display = 'inline-block';
-        document.getElementById('notes-panel').style.display = 'block';
         if (profile.next_visit_date) {
           document.getElementById('visit-info-wrap').style.display = 'flex';
           document.getElementById('next-visit-value').textContent =
@@ -478,9 +640,12 @@
         }
         loadNotes();
         loadBloodWork();
+        loadBodyComposition();
+        loadWellbeing();
         loadMedications();
         loadSnapshot();
-        await loadPlan();
+        await loadGoals();
+        await loadActions();
       } else {
         document.getElementById('promo-banner').style.display = 'block';
         // Free tier doesn't get a plan — hide the tab and default to Measurements
@@ -498,39 +663,94 @@
     }
 
     // ── Plan ──
-    async function loadPlan() {
-      const { data } = await supabaseClient.from('plans').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
-      const pill = document.getElementById('plan-status-pill');
-      const content = document.getElementById('plan-content');
-      const disclaimer = document.getElementById('plan-disclaimer');
-      const heading = document.getElementById('plan-heading');
+    let currentGoalsData = null;
+    let currentActionsData = null;
 
-      const hasContent = data ? renderCategoryArticle(content, PLAN_CATEGORIES, data.content_json) : false;
+    async function loadGoals() {
+      const { data } = await supabaseClient.from('goals').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      currentGoalsData = data;
+      const pill = document.getElementById('goals-status-pill');
+      const content = document.getElementById('goals-content');
+
+      const hasContent = data ? renderGoalsArticle(content, data.content, data.primary_objective) : false;
 
       if (!data || !hasContent) {
         content.innerHTML = '';
         const empty = document.createElement('p');
         empty.className = 'plan-empty-state';
-        empty.textContent = 'Your plan is being prepared — check back shortly.';
+        empty.textContent = 'Your goals are being prepared — check back shortly.';
         content.appendChild(empty);
         pill.style.display = 'none';
-        disclaimer.style.display = 'none';
         return;
       }
 
+      pill.style.display = 'inline-block';
       if (data.status === 'reviewed') {
-        heading.textContent = 'Your Longevity Plan';
         pill.textContent = 'Reviewed by your clinician';
         pill.className = 'status-pill reviewed';
-        disclaimer.style.display = 'none';
       } else {
-        heading.textContent = 'Your Plan';
         pill.textContent = 'Draft \u2014 pending clinician review';
         pill.className = 'status-pill draft';
-        disclaimer.style.display = 'block';
-        disclaimer.textContent = 'This draft has not yet been reviewed by your clinician. Treat it as a starting point for your next visit, not a finalised plan.';
       }
     }
+
+    async function loadActions() {
+      const { data } = await supabaseClient.from('actions').select('*').eq('patient_id', currentUser.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+      currentActionsData = data;
+      const pill = document.getElementById('actions-status-pill');
+      const content = document.getElementById('actions-content');
+      const pdfPanel = document.getElementById('pdf-panel');
+
+      const hasContent = data ? renderCategoryArticle(content, ACTIONS_CATEGORIES, data.content) : false;
+
+      if (!data || !hasContent) {
+        content.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'plan-empty-state';
+        empty.textContent = 'Your actions are being prepared — check back shortly.';
+        content.appendChild(empty);
+        pill.style.display = 'none';
+        pdfPanel.style.display = 'none';
+        return;
+      }
+
+      pdfPanel.style.display = 'block';
+      pill.style.display = 'inline-block';
+      if (data.status === 'reviewed') {
+        pill.textContent = 'Reviewed by your clinician';
+        pill.className = 'status-pill reviewed';
+      } else {
+        pill.textContent = 'Draft \u2014 pending clinician review';
+        pill.className = 'status-pill draft';
+      }
+    }
+
+    document.getElementById('download-pdf-btn').addEventListener('click', () => {
+      const wrap = document.createElement('div');
+      wrap.style.padding = '32px';
+      wrap.style.fontFamily = 'Jost, sans-serif';
+      const header = document.createElement('div');
+      header.style.marginBottom = '24px';
+      header.innerHTML = '<div style="font-family:Jost,sans-serif;font-weight:200;font-size:18px;letter-spacing:0.3em;color:#8B9068;text-transform:uppercase;">Aevum</div>';
+      wrap.appendChild(header);
+
+      const goalsCopy = document.getElementById('goals-content').cloneNode(true);
+      const actionsCopy = document.getElementById('actions-content').cloneNode(true);
+      const goalsHeading = document.createElement('h1');
+      goalsHeading.textContent = 'Your Goals';
+      goalsHeading.style.fontFamily = 'Cormorant Garamond, serif';
+      const actionsHeading = document.createElement('h1');
+      actionsHeading.textContent = 'Your Actions';
+      actionsHeading.style.fontFamily = 'Cormorant Garamond, serif';
+      actionsHeading.style.marginTop = '40px';
+
+      wrap.appendChild(goalsHeading);
+      wrap.appendChild(goalsCopy);
+      wrap.appendChild(actionsHeading);
+      wrap.appendChild(actionsCopy);
+
+      html2pdf().set({ margin: 10, filename: 'aevum-plan.pdf', html2canvas: { scale: 2 } }).from(wrap).save();
+    });
 
     async function loadSnapshot() {
       const { data } = await supabaseClient.from('health_snapshots').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
@@ -566,17 +786,26 @@
     // ── Follow-up notes ──
     async function loadNotes() {
       const { data } = await supabaseClient.from('visit_notes').select('*').eq('patient_id', currentUser.id).order('visit_date', { ascending: false });
-      const list = document.getElementById('notes-list');
+      const wrap = document.getElementById('notes-timeline');
       const empty = document.getElementById('notes-empty');
-      list.innerHTML = '';
+      wrap.innerHTML = '';
       if (!data || data.length === 0) { empty.style.display = 'block'; return; }
       empty.style.display = 'none';
       data.forEach(n => {
-        const div = document.createElement('div');
-        div.className = 'note-item';
-        div.innerHTML = `<div class="note-date">${new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'})}</div><div class="note-content"></div>`;
-        div.querySelector('.note-content').textContent = n.content;
-        list.appendChild(div);
+        const item = document.createElement('div');
+        item.className = 'patient-timeline-item';
+        const dateStr = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+        item.innerHTML = `
+          <div class="patient-timeline-date"></div>
+          ${n.working ? '<div class="patient-timeline-field"><b>Working</b><span></span></div>' : ''}
+          ${n.not_working ? '<div class="patient-timeline-field"><b>Not Working</b><span></span></div>' : ''}
+          ${n.changes_made ? '<div class="patient-timeline-field"><b>Changes Made</b><span></span></div>' : ''}
+        `;
+        item.querySelector('.patient-timeline-date').textContent = dateStr;
+        const spans = item.querySelectorAll('.patient-timeline-field span');
+        const vals = [n.working, n.not_working, n.changes_made].filter(Boolean);
+        spans.forEach((s, i) => { s.textContent = vals[i]; });
+        wrap.appendChild(item);
       });
     }
 
@@ -850,6 +1079,155 @@
 
 
     // ── Medications ──
+    // ── Body Composition & Fitness (read-only, clinician-entered) ──
+    let allBodyComp = [];
+    let activeBodyCompTest = null;
+    let bodyCompChart = null;
+
+    async function loadBodyComposition() {
+      const { data } = await supabaseClient.from('body_composition').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: true });
+      allBodyComp = data || [];
+
+      const testListWrap = document.getElementById('bodycomp-test-list');
+      const emptyMsg = document.getElementById('bodycomp-empty');
+      testListWrap.innerHTML = '';
+
+      if (allBodyComp.length === 0) {
+        emptyMsg.style.display = 'block';
+        document.getElementById('bodycomp-detail-wrap').style.display = 'none';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+
+      const testNames = [...new Set(allBodyComp.map(r => r.test_name))];
+      if (!activeBodyCompTest || !testNames.includes(activeBodyCompTest)) activeBodyCompTest = testNames[0];
+
+      testNames.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (name === activeBodyCompTest ? ' active' : '');
+        btn.textContent = name;
+        btn.addEventListener('click', () => { activeBodyCompTest = name; renderBodyCompDetail(); });
+        testListWrap.appendChild(btn);
+      });
+
+      document.getElementById('bodycomp-detail-wrap').style.display = 'block';
+      renderBodyCompDetail();
+    }
+
+    function renderBodyCompDetail() {
+      document.querySelectorAll('#bodycomp-test-list .tab-btn').forEach(b => {
+        b.classList.toggle('active', b.textContent === activeBodyCompTest);
+      });
+      const entries = allBodyComp.filter(r => r.test_name === activeBodyCompTest).sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
+
+      const canvas = document.getElementById('bodycomp-chart');
+      if (bodyCompChart) bodyCompChart.destroy();
+      bodyCompChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.test_date), datasets: [{
+          label: activeBodyCompTest, data: entries.map(e => e.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+
+      const tbody = document.getElementById('bodycomp-tbody');
+      tbody.innerHTML = '';
+      [...entries].reverse().forEach(r => {
+        const tr = document.createElement('tr');
+        const dateStr = new Date(r.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        tr.innerHTML = `<td>${dateStr}</td><td>${r.value}${r.unit ? ' ' + r.unit : ''}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ── Wellbeing Scores (patient self-entry daily check-in) ──
+    const WELLBEING_LABELS = {
+      stress_level: 'Stress Level', mood: 'Mood', focus: 'Focus',
+      sleep_quality: 'Sleep Quality', physical_recovery: 'Physical Recovery',
+      digestive_comfort: 'Digestive Comfort', energy_level: 'Energy Level',
+      skin_condition: 'Skin Condition', plan_adherence: 'Plan Adherence',
+    };
+    let allWellbeing = [];
+    let activeWellbeingMetric = 'stress_level';
+    let wellbeingChart = null;
+
+    function buildWellbeingSliders() {
+      const wrap = document.getElementById('wellbeing-sliders');
+      wrap.innerHTML = '';
+      Object.entries(WELLBEING_LABELS).forEach(([key, label]) => {
+        const div = document.createElement('div');
+        div.style.marginBottom = '18px';
+        div.innerHTML = `
+          <label style="display:flex;justify-content:space-between;">${label} <span id="wb-val-${key}" style="color:var(--sage-deep);">5</span></label>
+          <input type="range" min="1" max="10" value="5" id="wb-${key}" style="width:100%;accent-color:#8B9068;" />
+        `;
+        wrap.appendChild(div);
+      });
+      Object.keys(WELLBEING_LABELS).forEach(key => {
+        document.getElementById(`wb-${key}`).addEventListener('input', (e) => {
+          document.getElementById(`wb-val-${key}`).textContent = e.target.value;
+        });
+      });
+    }
+
+    document.getElementById('wellbeing-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('wellbeing-save-btn');
+      const msg = document.getElementById('wellbeing-msg');
+      const payload = { patient_id: currentUser.id, recorded_at: document.getElementById('wellbeing-date').value };
+      Object.keys(WELLBEING_LABELS).forEach(key => {
+        payload[key] = parseInt(document.getElementById(`wb-${key}`).value, 10);
+      });
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const { error } = await supabaseClient.from('wellbeing_scores').upsert(payload, { onConflict: 'patient_id,recorded_at' });
+      btn.disabled = false; btn.textContent = 'Save Today\u2019s Check-In';
+      if (error) { msg.textContent = error.message; msg.className = 'msg show error'; }
+      else { msg.textContent = 'Check-in saved.'; msg.className = 'msg show success'; loadWellbeing(); }
+    });
+
+    async function loadWellbeing() {
+      const { data } = await supabaseClient.from('wellbeing_scores').select('*').eq('patient_id', currentUser.id).order('recorded_at', { ascending: true });
+      allWellbeing = data || [];
+      const tabsWrap = document.getElementById('wellbeing-tabs');
+      const canvas = document.getElementById('wellbeing-chart');
+      const empty = document.getElementById('wellbeing-empty');
+      tabsWrap.innerHTML = '';
+
+      if (allWellbeing.length === 0) {
+        empty.style.display = 'block'; canvas.style.display = 'none';
+        if (wellbeingChart) { wellbeingChart.destroy(); wellbeingChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block';
+
+      Object.entries(WELLBEING_LABELS).forEach(([key, label]) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (key === activeWellbeingMetric ? ' active' : '');
+        btn.textContent = label;
+        btn.addEventListener('click', () => { activeWellbeingMetric = key; drawWellbeingChart(); });
+        tabsWrap.appendChild(btn);
+      });
+      drawWellbeingChart();
+    }
+
+    function drawWellbeingChart() {
+      document.querySelectorAll('#wellbeing-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === WELLBEING_LABELS[activeWellbeingMetric]));
+      const entries = allWellbeing.filter(r => r[activeWellbeingMetric] !== null && r[activeWellbeingMetric] !== undefined);
+      const canvas = document.getElementById('wellbeing-chart');
+      if (wellbeingChart) wellbeingChart.destroy();
+      wellbeingChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.recorded_at), datasets: [{
+          label: WELLBEING_LABELS[activeWellbeingMetric], data: entries.map(e => e[activeWellbeingMetric]),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' }, min: 1, max: 10 } } },
+      });
+    }
+
     async function loadMedications() {
       const { data } = await supabaseClient.from('medications').select('*').eq('patient_id', currentUser.id).eq('active', true).order('added_at', { ascending: false });
       const list = document.getElementById('med-list');

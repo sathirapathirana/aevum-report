@@ -73,6 +73,21 @@
     .cat-summary::before{content:'\25B8  ';color:var(--sage);}
     .cat-details[open] .cat-summary::before{content:'\25BE  ';}
     .cat-body{padding:16px;}
+    .goal-timeframe-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:4px;}
+    .cycle-select-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .cycle-select-row select{margin-bottom:0;}
+    .timeline{position:relative;padding-left:20px;}
+    .timeline::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--line);}
+    .timeline-item{position:relative;padding-bottom:22px;}
+    .timeline-item:last-child{padding-bottom:0;}
+    .timeline-item::before{content:'';position:absolute;left:-20px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--sage);}
+    .timeline-date{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:6px;}
+    .timeline-field{font-size:12px;margin-bottom:6px;}
+    .timeline-field b{color:var(--mid);font-weight:400;text-transform:uppercase;font-size:9px;letter-spacing:0.08em;display:block;margin-bottom:2px;}
+    .cat-regen-row{display:flex;justify-content:flex-end;padding:8px 16px 0;}
+    .btn-tiny{background:none;border:1px solid var(--sage-light);color:var(--sage-deep);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;cursor:pointer;font-family:'Jost',sans-serif;}
+    .btn-tiny:hover{border-color:var(--sage);}
+    .btn-tiny:disabled{opacity:0.5;cursor:not-allowed;}
     .cat-body label{margin-top:14px;}
     .cat-body label:first-child{margin-top:0;}
     .cat-body textarea{min-height:70px;}
@@ -192,6 +207,158 @@
       ]},
     ];
     const PLAN_CATEGORIES = HEALTH_CATEGORIES.filter(c => c.plan);
+    const ACTIONS_CATEGORIES = PLAN_CATEGORIES;
+
+    const GOALS_EXTRA_CATEGORY = {
+      key: 'biomarkers', title: 'Biomarkers & Body Composition', subcats: [
+        { key: 'lab_targets', title: 'Lab Value Targets' },
+        { key: 'body_comp_targets', title: 'Body Composition Targets' },
+      ],
+    };
+    const GOALS_CATEGORIES = [GOALS_EXTRA_CATEGORY, ...ACTIONS_CATEGORIES];
+    const TIMEFRAMES = [
+      { key: 'three_month', title: '3-Month' },
+      { key: 'six_month', title: '6-Month' },
+      { key: 'one_year', title: '1-Year' },
+    ];
+
+    function buildGoalsFields(containerEl, categories, dataObj) {
+      containerEl.innerHTML = '';
+      categories.forEach(cat => {
+        const details = document.createElement('details');
+        details.className = 'cat-details';
+        const summary = document.createElement('summary');
+        summary.className = 'cat-summary';
+        summary.textContent = cat.title;
+        details.appendChild(summary);
+        const body = document.createElement('div');
+        body.className = 'cat-body';
+        cat.subcats.forEach(sub => {
+          const subLabel = document.createElement('label');
+          subLabel.style.marginTop = '18px';
+          subLabel.style.fontSize = '11px';
+          subLabel.textContent = sub.title;
+          body.appendChild(subLabel);
+          const row = document.createElement('div');
+          row.className = 'goal-timeframe-row';
+          TIMEFRAMES.forEach(tf => {
+            const col = document.createElement('div');
+            const tfLabel = document.createElement('label');
+            tfLabel.style.fontSize = '9px';
+            tfLabel.textContent = tf.title;
+            const textarea = document.createElement('textarea');
+            textarea.id = `goal-${cat.key}-${sub.key}-${tf.key}`;
+            textarea.style.minHeight = '60px';
+            textarea.value = (dataObj && dataObj[cat.key] && dataObj[cat.key][sub.key] && dataObj[cat.key][sub.key][tf.key]) || '';
+            col.appendChild(tfLabel);
+            col.appendChild(textarea);
+            row.appendChild(col);
+          });
+          body.appendChild(row);
+        });
+        details.appendChild(body);
+        containerEl.appendChild(details);
+      });
+    }
+
+    function collectGoalsFields(categories) {
+      const result = {};
+      categories.forEach(cat => {
+        result[cat.key] = {};
+        cat.subcats.forEach(sub => {
+          result[cat.key][sub.key] = {};
+          TIMEFRAMES.forEach(tf => {
+            const el = document.getElementById(`goal-${cat.key}-${sub.key}-${tf.key}`);
+            result[cat.key][sub.key][tf.key] = el ? el.value : '';
+          });
+        });
+      });
+      return result;
+    }
+
+    // Actions fields, same shape as buildCategoryFields, but each category
+    // gets its own Regenerate control and a "last regenerated" timestamp.
+    function buildActionsFieldsWithRegen(containerEl, dataObj, regenTimestamps, isEditable, patientId) {
+      containerEl.innerHTML = '';
+      ACTIONS_CATEGORIES.forEach(cat => {
+        const details = document.createElement('details');
+        details.className = 'cat-details';
+        const summary = document.createElement('summary');
+        summary.className = 'cat-summary';
+        summary.textContent = cat.title;
+        details.appendChild(summary);
+
+        const body = document.createElement('div');
+        body.className = 'cat-body';
+        cat.subcats.forEach(sub => {
+          const label = document.createElement('label');
+          label.textContent = sub.title;
+          const textarea = document.createElement('textarea');
+          textarea.id = `actions-${cat.key}-${sub.key}`;
+          textarea.value = (dataObj && dataObj[cat.key] && dataObj[cat.key][sub.key]) || '';
+          textarea.disabled = !isEditable;
+          body.appendChild(label);
+          body.appendChild(textarea);
+        });
+        details.appendChild(body);
+
+        if (isEditable) {
+          const regenRow = document.createElement('div');
+          regenRow.className = 'cat-regen-row';
+          const lastRegen = regenTimestamps && regenTimestamps[cat.key];
+          const timestampSpan = document.createElement('span');
+          timestampSpan.style.fontSize = '9px';
+          timestampSpan.style.color = 'var(--mid)';
+          timestampSpan.style.marginRight = 'auto';
+          timestampSpan.textContent = lastRegen ? 'Last regenerated ' + new Date(lastRegen).toLocaleDateString() : 'Not yet regenerated';
+          const regenBtn = document.createElement('button');
+          regenBtn.type = 'button';
+          regenBtn.className = 'btn-tiny';
+          regenBtn.textContent = 'Regenerate';
+          regenBtn.addEventListener('click', () => regenerateCategory(patientId, cat.key, regenBtn));
+          regenRow.appendChild(timestampSpan);
+          regenRow.appendChild(regenBtn);
+          details.appendChild(regenRow);
+        }
+
+        containerEl.appendChild(details);
+      });
+    }
+
+    // Calls the Supabase Edge Function that performs the actual Claude
+    // generation server-side. See DEPLOY_EDGE_FUNCTION.md for setup —
+    // these calls will error clearly until that function is deployed.
+    async function regenerateCategory(patientId, categoryKey, buttonEl) {
+      const original = buttonEl.textContent;
+      buttonEl.disabled = true;
+      buttonEl.textContent = 'Generating…';
+      const { data, error } = await supabaseClient.functions.invoke('generate-plan', {
+        body: { mode: 'category', patientId, categoryKey },
+      });
+      buttonEl.disabled = false;
+      buttonEl.textContent = original;
+      if (error) {
+        alert('Regeneration failed: ' + error.message);
+        return;
+      }
+      await selectPatient(patientId);
+    }
+
+    async function regenerateAllActions(patientId, buttonEl) {
+      const original = buttonEl.textContent;
+      buttonEl.disabled = true;
+      buttonEl.textContent = 'Generating…';
+      const { data, error } = await supabaseClient.functions.invoke('generate-plan', {
+        body: { mode: 'all_actions', patientId },
+      });
+      buttonEl.disabled = false;
+      buttonEl.textContent = original;
+      if (error) {
+        alert('Regeneration failed: ' + error.message);
+        return;
+      }
+      await selectPatient(patientId);
+    }
 
     function buildCategoryFields(containerEl, categories, idPrefix, dataObj) {
       containerEl.innerHTML = '';
@@ -233,10 +400,23 @@
     let allPatients = [];
     let clMetricChart = null;
     let clBwChart = null;
+    let clBodyCompChart = null;
+    let clWellbeingChart = null;
     let clMeasurementsData = [];
     let clBloodWorkData = [];
+    let clBodyCompData = [];
+    let clWellbeingData = [];
     let clActiveMetric = 'weight_kg';
     let clActiveBwTest = null;
+    let clActiveBodyCompTest = null;
+    let clActiveWellbeingMetric = 'stress_level';
+
+    const WELLBEING_LABELS = {
+      stress_level: 'Stress Level', mood: 'Mood', focus: 'Focus',
+      sleep_quality: 'Sleep Quality', physical_recovery: 'Physical Recovery',
+      digestive_comfort: 'Digestive Comfort', energy_level: 'Energy Level',
+      skin_condition: 'Skin Condition', plan_adherence: 'Plan Adherence',
+    };
     let selectedPatientId = null;
 
     async function init() {
@@ -292,7 +472,9 @@
       renderPatientList(currentSearch ? allPatients.filter(p => matchesSearch(p, currentSearch)) : allPatients);
 
       const patient = allPatients.find(p => p.id === id);
-      const { data: planData } = await supabaseClient.from('plans').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: goalsData } = await supabaseClient.from('goals').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
+      const { data: actionsRows } = await supabaseClient.from('actions').select('*').eq('patient_id', id).order('created_at', { ascending: false });
+      const currentActions = (actionsRows && actionsRows[0]) || null;
       const { data: snapshotData } = await supabaseClient.from('health_snapshots').select('*').eq('patient_id', id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
       const { data: notesData } = await supabaseClient.from('visit_notes').select('*').eq('patient_id', id).order('visit_date', { ascending: false });
 
@@ -334,27 +516,57 @@
         </div>
 
         <div class="panel" style="margin-bottom:20px;">
-          <h2 class="panel-title">Plan</h2>
+          <h2 class="panel-title">Goals</h2>
           <label>Status</label>
-          <select id="plan-status-select">
+          <select id="goals-status-select">
             <option value="ai_draft">AI Draft (unreviewed)</option>
             <option value="reviewed">Reviewed by Clinician</option>
           </select>
-          <p style="font-size:11px;color:var(--mid);margin:14px 0 4px;">Click a category to expand it and write your recommendations. Categories match the patient's Health Snapshot below, so they can see exactly what's changed.</p>
-          <div id="plan-fields"></div>
-          <button class="btn-sage" id="save-plan-btn" style="margin-top:16px;">Save Plan</button>
-          <div class="msg" id="plan-msg"></div>
+          <label>Primary Objective</label>
+          <textarea id="goals-primary-objective" placeholder="The overall 'why' behind this patient's plan…" style="min-height:70px;"></textarea>
+          <p style="font-size:11px;color:var(--mid);margin:14px 0 4px;">Each category is split into 3-month, 6-month, and 1-year targets.</p>
+          <button class="btn-tiny" type="button" id="generate-initial-btn" style="margin-bottom:16px;">Generate Draft from Reviewed Snapshot</button>
+          <div id="goals-fields"></div>
+          <button class="btn-sage" id="save-goals-btn" style="margin-top:16px;">Save Goals</button>
+          <div class="msg" id="goals-msg"></div>
+        </div>
+
+        <div class="panel" style="margin-bottom:20px;">
+          <h2 class="panel-title">Actions</h2>
+          <div class="cycle-select-row">
+            <select id="actions-cycle-select" style="flex:1;"></select>
+          </div>
+          <label>Status</label>
+          <select id="actions-status-select">
+            <option value="ai_draft">AI Draft (unreviewed)</option>
+            <option value="reviewed">Reviewed by Clinician</option>
+          </select>
+          <p style="font-size:11px;color:var(--mid);margin:14px 0 4px;">Click a category to expand it. Each has its own Regenerate — reads Follow-Up Notes added or edited since it was last touched.</p>
+          <div id="actions-fields"></div>
+          <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;">
+            <button class="btn-sage" id="save-actions-btn" style="margin-top:0;">Save Actions</button>
+            <button class="btn-sage" id="regen-all-actions-btn" style="margin-top:0;background:var(--charcoal);">Regenerate All Actions</button>
+            <button class="btn-quiet" id="new-cycle-btn" type="button">Start New 3-Month Cycle</button>
+          </div>
+          <div class="msg" id="actions-msg"></div>
         </div>
 
         <div class="panel">
-          <h2 class="panel-title">Follow-Up Notes</h2>
+          <h2 class="panel-title">Follow-Up</h2>
           <label>Visit Date</label>
           <input type="date" id="note-date-input" />
-          <label>Note</label>
-          <textarea id="note-textarea" placeholder="What was discussed, changes made to the plan, etc."></textarea>
-          <button class="btn-sage" id="save-note-btn">Add Note</button>
+          <label>What's Working</label>
+          <textarea id="note-working" placeholder="What's going well since the last visit…" style="min-height:70px;"></textarea>
+          <label>What's Not Working</label>
+          <textarea id="note-not-working" placeholder="What isn't going well, or hasn't been followed…" style="min-height:70px;"></textarea>
+          <label>Changes Made This Visit</label>
+          <textarea id="note-changes" placeholder="What you're adjusting as a result…" style="min-height:70px;"></textarea>
+          <div style="display:flex;gap:12px;margin-top:4px;">
+            <button class="btn-sage" id="save-note-btn" style="margin-top:16px;">Add Note</button>
+            <button class="btn-quiet" id="cancel-note-edit-btn" type="button" style="display:none;margin-top:16px;">Cancel Edit</button>
+          </div>
           <div class="msg" id="note-msg"></div>
-          <div id="notes-history" style="margin-top:20px;"></div>
+          <div id="notes-timeline" class="timeline" style="margin-top:24px;"></div>
         </div>
 
         <div class="panel" style="margin-top:20px;">
@@ -369,6 +581,20 @@
           <div class="tabs" id="cl-bw-tabs"></div>
           <div class="chart-wrap"><canvas id="cl-bw-chart"></canvas></div>
           <p class="empty-detail" id="cl-bw-empty" style="display:none;padding:30px 0;">No blood work logged yet.</p>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Body Composition & Fitness</h2>
+          <div class="tabs" id="cl-bodycomp-tabs"></div>
+          <div class="chart-wrap"><canvas id="cl-bodycomp-chart"></canvas></div>
+          <p class="empty-detail" id="cl-bodycomp-empty" style="display:none;padding:30px 0;">No body composition data logged yet.</p>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Wellbeing Scores</h2>
+          <div class="tabs" id="cl-wellbeing-tabs"></div>
+          <div class="chart-wrap"><canvas id="cl-wellbeing-chart"></canvas></div>
+          <p class="empty-detail" id="cl-wellbeing-empty" style="display:none;padding:30px 0;">No wellbeing check-ins logged yet.</p>
         </div>
 
         <div class="panel" style="margin-top:20px;">
@@ -392,23 +618,90 @@
       document.getElementById('name-input').value = patient.full_name || '';
       document.getElementById('tier-select').value = patient.subscription_tier;
       document.getElementById('visit-date-input').value = patient.next_visit_date || '';
-      document.getElementById('plan-status-select').value = planData ? planData.status : 'ai_draft';
-      buildCategoryFields(document.getElementById('plan-fields'), PLAN_CATEGORIES, 'plan', planData ? planData.content_json : {});
+
+      document.getElementById('goals-status-select').value = goalsData ? goalsData.status : 'ai_draft';
+      document.getElementById('goals-primary-objective').value = goalsData ? (goalsData.primary_objective || '') : '';
+      buildGoalsFields(document.getElementById('goals-fields'), GOALS_CATEGORIES, goalsData ? goalsData.content : {});
+
       document.getElementById('snapshot-status-select').value = snapshotData ? snapshotData.status : 'ai_draft';
       buildCategoryFields(document.getElementById('snapshot-fields'), HEALTH_CATEGORIES, 'snap', snapshotData ? snapshotData.content : {});
       document.getElementById('note-date-input').valueAsDate = new Date();
 
-      const historyWrap = document.getElementById('notes-history');
-      if (notesData && notesData.length) {
+      // ── Actions: cycle selector ──
+      const cycleSelect = document.getElementById('actions-cycle-select');
+      cycleSelect.innerHTML = '';
+      (actionsRows || []).forEach((row, i) => {
+        const opt = document.createElement('option');
+        opt.value = row.id;
+        const dateStr = new Date(row.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        opt.textContent = i === 0 ? `Current cycle (started ${dateStr})` : `Past cycle — ${dateStr}`;
+        cycleSelect.appendChild(opt);
+      });
+      if (!actionsRows || actionsRows.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No cycle yet — save to create one';
+        cycleSelect.appendChild(opt);
+      }
+
+      function renderActionsForCycle(cycleId) {
+        const row = (actionsRows || []).find(r => r.id === cycleId) || null;
+        const isCurrent = actionsRows && actionsRows[0] && actionsRows[0].id === cycleId;
+        document.getElementById('actions-status-select').value = row ? row.status : 'ai_draft';
+        document.getElementById('actions-status-select').disabled = !isCurrent;
+        buildActionsFieldsWithRegen(document.getElementById('actions-fields'), row ? row.content : {}, row ? row.category_regenerated_at : {}, isCurrent, id);
+        document.getElementById('save-actions-btn').style.display = isCurrent ? 'inline-block' : 'none';
+        document.getElementById('regen-all-actions-btn').style.display = isCurrent ? 'inline-block' : 'none';
+      }
+      cycleSelect.addEventListener('change', () => renderActionsForCycle(cycleSelect.value));
+      if (actionsRows && actionsRows.length) renderActionsForCycle(actionsRows[0].id);
+      else buildActionsFieldsWithRegen(document.getElementById('actions-fields'), {}, {}, true, id);
+
+      // ── Follow-up notes: timeline + edit support ──
+      let editingNoteId = null;
+      function renderNotesTimeline() {
+        const wrap2 = document.getElementById('notes-timeline');
+        wrap2.innerHTML = '';
+        if (!notesData || notesData.length === 0) return;
         notesData.forEach(n => {
-          const div = document.createElement('div');
-          div.className = 'note-item';
-          div.innerHTML = `<div class="note-date"></div><div></div>`;
-          div.children[0].textContent = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
-          div.children[1].textContent = n.content;
-          historyWrap.appendChild(div);
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          const dateStr = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+          item.innerHTML = `
+            <div class="timeline-date"></div>
+            ${n.working ? '<div class="timeline-field"><b>Working</b><span></span></div>' : ''}
+            ${n.not_working ? '<div class="timeline-field"><b>Not Working</b><span></span></div>' : ''}
+            ${n.changes_made ? '<div class="timeline-field"><b>Changes Made</b><span></span></div>' : ''}
+            <button class="btn-tiny" type="button" style="margin-top:6px;">Edit</button>
+          `;
+          item.querySelector('.timeline-date').textContent = dateStr;
+          const spans = item.querySelectorAll('.timeline-field span');
+          const vals = [n.working, n.not_working, n.changes_made].filter(Boolean);
+          spans.forEach((s, i) => { s.textContent = vals[i]; });
+          item.querySelector('.btn-tiny').addEventListener('click', () => {
+            editingNoteId = n.id;
+            document.getElementById('note-date-input').value = n.visit_date;
+            document.getElementById('note-working').value = n.working || '';
+            document.getElementById('note-not-working').value = n.not_working || '';
+            document.getElementById('note-changes').value = n.changes_made || '';
+            document.getElementById('save-note-btn').textContent = 'Update Note';
+            document.getElementById('cancel-note-edit-btn').style.display = 'inline-block';
+            document.getElementById('note-working').scrollIntoView({ behavior: 'smooth', block: 'center' });
+          });
+          wrap2.appendChild(item);
         });
       }
+      renderNotesTimeline();
+
+      document.getElementById('cancel-note-edit-btn').addEventListener('click', () => {
+        editingNoteId = null;
+        document.getElementById('note-date-input').valueAsDate = new Date();
+        document.getElementById('note-working').value = '';
+        document.getElementById('note-not-working').value = '';
+        document.getElementById('note-changes').value = '';
+        document.getElementById('save-note-btn').textContent = 'Add Note';
+        document.getElementById('cancel-note-edit-btn').style.display = 'none';
+      });
 
       document.getElementById('save-tier-btn').addEventListener('click', async () => {
         const btn = document.getElementById('save-tier-btn');
@@ -428,26 +721,76 @@
         }
       });
 
-      document.getElementById('save-plan-btn').addEventListener('click', async () => {
-        const btn = document.getElementById('save-plan-btn');
-        const msg = document.getElementById('plan-msg');
+      document.getElementById('generate-initial-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('generate-initial-btn');
+        const original = btn.textContent;
+        btn.disabled = true; btn.textContent = 'Generating…';
+        const { error } = await supabaseClient.functions.invoke('generate-plan', { body: { mode: 'initial', patientId: id } });
+        btn.disabled = false; btn.textContent = original;
+        if (error) { alert('Generation failed: ' + error.message); return; }
+        selectPatient(id);
+      });
+
+      document.getElementById('save-goals-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-goals-btn');
+        const msg = document.getElementById('goals-msg');
         btn.disabled = true;
         const payload = {
           patient_id: id,
-          content_json: collectCategoryFields(PLAN_CATEGORIES, 'plan'),
-          status: document.getElementById('plan-status-select').value,
-          reviewed_by: document.getElementById('plan-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
+          primary_objective: document.getElementById('goals-primary-objective').value,
+          content: collectGoalsFields(GOALS_CATEGORIES),
+          status: document.getElementById('goals-status-select').value,
+          reviewed_by: document.getElementById('goals-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
         };
         let error;
-        if (planData) {
-          ({ error } = await supabaseClient.from('plans').update(payload).eq('id', planData.id));
+        if (goalsData) {
+          ({ error } = await supabaseClient.from('goals').update(payload).eq('id', goalsData.id));
         } else {
-          ({ error } = await supabaseClient.from('plans').insert(payload));
+          ({ error } = await supabaseClient.from('goals').insert(payload));
         }
         btn.disabled = false;
         msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Plan saved.';
+        msg.textContent = error ? error.message : 'Goals saved.';
+      });
+
+      document.getElementById('save-actions-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('save-actions-btn');
+        const msg = document.getElementById('actions-msg');
+        btn.disabled = true;
+        const payload = {
+          content: collectCategoryFields(ACTIONS_CATEGORIES, 'actions'),
+          status: document.getElementById('actions-status-select').value,
+          reviewed_by: document.getElementById('actions-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
+          updated_at: new Date().toISOString(),
+        };
+        let error;
+        if (currentActions) {
+          ({ error } = await supabaseClient.from('actions').update(payload).eq('id', currentActions.id));
+        } else {
+          ({ error } = await supabaseClient.from('actions').insert({ ...payload, patient_id: id }));
+        }
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Actions saved.';
+      });
+
+      document.getElementById('regen-all-actions-btn').addEventListener('click', () => {
+        regenerateAllActions(id, document.getElementById('regen-all-actions-btn'));
+      });
+
+      document.getElementById('new-cycle-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('new-cycle-btn');
+        if (!confirm('Start a new 3-month cycle? The current one will be kept as history, and a fresh cycle will start (carrying forward the current content as a starting point).')) return;
+        btn.disabled = true;
+        const { error } = await supabaseClient.from('actions').insert({
+          patient_id: id,
+          content: currentActions ? currentActions.content : {},
+          status: 'ai_draft',
+        });
+        btn.disabled = false;
+        if (error) { alert('Could not start new cycle: ' + error.message); return; }
+        selectPatient(id);
       });
 
       document.getElementById('save-snapshot-btn').addEventListener('click', async () => {
@@ -475,24 +818,34 @@
       document.getElementById('save-note-btn').addEventListener('click', async () => {
         const btn = document.getElementById('save-note-btn');
         const msg = document.getElementById('note-msg');
-        const content = document.getElementById('note-textarea').value.trim();
-        if (!content) return;
+        const working = document.getElementById('note-working').value.trim();
+        const notWorking = document.getElementById('note-not-working').value.trim();
+        const changesMade = document.getElementById('note-changes').value.trim();
+        if (!working && !notWorking && !changesMade) return;
         btn.disabled = true;
         const { data: userData } = await supabaseClient.auth.getUser();
-        const { error } = await supabaseClient.from('visit_notes').insert({
+        const payload = {
           patient_id: id,
           visit_date: document.getElementById('note-date-input').value,
-          content,
-          created_by: userData.user.id,
-        });
+          working, not_working: notWorking, changes_made: changesMade,
+          updated_at: new Date().toISOString(),
+        };
+        let error;
+        if (editingNoteId) {
+          ({ error } = await supabaseClient.from('visit_notes').update(payload).eq('id', editingNoteId));
+        } else {
+          ({ error } = await supabaseClient.from('visit_notes').insert({ ...payload, created_by: userData.user.id }));
+        }
         btn.disabled = false;
         msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Note added.';
+        msg.textContent = error ? error.message : (editingNoteId ? 'Note updated.' : 'Note added.');
         if (!error) selectPatient(id);
       });
 
       renderClinicianMeasurements(id);
       renderClinicianBloodWork(id);
+      renderClinicianBodyComposition(id);
+      renderClinicianWellbeing(id);
       renderClinicianMedications(id);
     }
 
@@ -583,6 +936,91 @@
         }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+    }
+
+    async function renderClinicianBodyComposition(patientId) {
+      const { data } = await supabaseClient.from('body_composition').select('*').eq('patient_id', patientId).order('test_date', { ascending: true });
+      clBodyCompData = data || [];
+      const tabsWrap = document.getElementById('cl-bodycomp-tabs');
+      const canvas = document.getElementById('cl-bodycomp-chart');
+      const empty = document.getElementById('cl-bodycomp-empty');
+      tabsWrap.innerHTML = '';
+
+      if (clBodyCompData.length === 0) {
+        empty.style.display = 'block'; canvas.style.display = 'none';
+        if (clBodyCompChart) { clBodyCompChart.destroy(); clBodyCompChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block';
+
+      const testsPresent = [...new Set(clBodyCompData.map(r => r.test_name))];
+      if (!clActiveBodyCompTest || !testsPresent.includes(clActiveBodyCompTest)) clActiveBodyCompTest = testsPresent[0];
+
+      testsPresent.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (name === clActiveBodyCompTest ? ' active' : '');
+        btn.textContent = name;
+        btn.addEventListener('click', () => { clActiveBodyCompTest = name; drawClinicianBodyCompChart(); });
+        tabsWrap.appendChild(btn);
+      });
+      drawClinicianBodyCompChart();
+    }
+
+    function drawClinicianBodyCompChart() {
+      document.querySelectorAll('#cl-bodycomp-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === clActiveBodyCompTest));
+      const entries = clBodyCompData.filter(r => r.test_name === clActiveBodyCompTest);
+      const canvas = document.getElementById('cl-bodycomp-chart');
+      if (clBodyCompChart) clBodyCompChart.destroy();
+      clBodyCompChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.test_date), datasets: [{
+          label: clActiveBodyCompTest, data: entries.map(e => e.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+    }
+
+    async function renderClinicianWellbeing(patientId) {
+      const { data } = await supabaseClient.from('wellbeing_scores').select('*').eq('patient_id', patientId).order('recorded_at', { ascending: true });
+      clWellbeingData = data || [];
+      const tabsWrap = document.getElementById('cl-wellbeing-tabs');
+      const canvas = document.getElementById('cl-wellbeing-chart');
+      const empty = document.getElementById('cl-wellbeing-empty');
+      tabsWrap.innerHTML = '';
+
+      if (clWellbeingData.length === 0) {
+        empty.style.display = 'block'; canvas.style.display = 'none';
+        if (clWellbeingChart) { clWellbeingChart.destroy(); clWellbeingChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block';
+
+      Object.keys(WELLBEING_LABELS).forEach(key => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (key === clActiveWellbeingMetric ? ' active' : '');
+        btn.textContent = WELLBEING_LABELS[key];
+        btn.addEventListener('click', () => { clActiveWellbeingMetric = key; drawClinicianWellbeingChart(); });
+        tabsWrap.appendChild(btn);
+      });
+      drawClinicianWellbeingChart();
+    }
+
+    function drawClinicianWellbeingChart() {
+      document.querySelectorAll('#cl-wellbeing-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === WELLBEING_LABELS[clActiveWellbeingMetric]));
+      const entries = clWellbeingData.filter(r => r[clActiveWellbeingMetric] !== null && r[clActiveWellbeingMetric] !== undefined);
+      const canvas = document.getElementById('cl-wellbeing-chart');
+      if (clWellbeingChart) clWellbeingChart.destroy();
+      clWellbeingChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: entries.map(e => e.recorded_at), datasets: [{
+          label: WELLBEING_LABELS[clActiveWellbeingMetric], data: entries.map(e => e[clActiveWellbeingMetric]),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' }, min: 1, max: 10 } } },
       });
     }
 
