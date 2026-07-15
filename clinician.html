@@ -585,7 +585,25 @@
 
         <div class="panel" style="margin-top:20px;">
           <h2 class="panel-title">Body Composition & Fitness</h2>
-          <div class="tabs" id="cl-bodycomp-tabs"></div>
+          <form id="cl-bodycomp-form" class="field-row" style="align-items:end;">
+            <div>
+              <label>Test</label>
+              <select id="cl-bodycomp-test-select"></select>
+              <input type="text" id="cl-bodycomp-test-custom" placeholder="Test name" style="display:none;margin-bottom:14px;" />
+              <label>Value</label>
+              <input type="text" id="cl-bodycomp-value" required placeholder="e.g. 22.5" style="margin-bottom:14px;" />
+            </div>
+            <div>
+              <label>Unit</label>
+              <select id="cl-bodycomp-unit-select"></select>
+              <input type="text" id="cl-bodycomp-unit-custom" placeholder="Unit" style="display:none;margin-bottom:14px;" />
+              <label>Test date</label>
+              <input type="date" id="cl-bodycomp-date" required style="margin-bottom:14px;" />
+            </div>
+          </form>
+          <button class="btn-sage" id="cl-bodycomp-save-btn" style="margin-top:0;">Add Result</button>
+          <div class="msg" id="cl-bodycomp-msg"></div>
+          <div class="tabs" id="cl-bodycomp-tabs" style="margin-top:20px;"></div>
           <div class="chart-wrap"><canvas id="cl-bodycomp-chart"></canvas></div>
           <p class="empty-detail" id="cl-bodycomp-empty" style="display:none;padding:30px 0;">No body composition data logged yet.</p>
         </div>
@@ -939,7 +957,63 @@
       });
     }
 
+    const COMMON_BODYCOMP_TESTS = {
+      'Body Fat %': '%', 'Skeletal Muscle Mass': 'kg', 'Visceral Fat Level': 'level',
+      'Bone Mineral Density': 'g/cm\u00b2', 'Total Body Water %': '%', 'Lean Body Mass': 'kg',
+      'BMR': 'kcal/day', 'Grip Strength \u2014 Left': 'kg', 'Grip Strength \u2014 Right': 'kg',
+    };
+    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level'];
+
     async function renderClinicianBodyComposition(patientId) {
+      // Populate dropdowns fresh each time (the detail panel is rebuilt per patient selection)
+      const testSelect = document.getElementById('cl-bodycomp-test-select');
+      const unitSelect = document.getElementById('cl-bodycomp-unit-select');
+      testSelect.innerHTML = ''; unitSelect.innerHTML = '';
+      Object.keys(COMMON_BODYCOMP_TESTS).forEach(name => {
+        const opt = document.createElement('option'); opt.value = name; opt.textContent = name;
+        testSelect.appendChild(opt);
+      });
+      const otherTest = document.createElement('option'); otherTest.value = '__other__'; otherTest.textContent = 'Other (specify)';
+      testSelect.appendChild(otherTest);
+      COMMON_BODYCOMP_UNITS.forEach(u => {
+        const opt = document.createElement('option'); opt.value = u; opt.textContent = u;
+        unitSelect.appendChild(opt);
+      });
+      const otherUnit = document.createElement('option'); otherUnit.value = '__other__'; otherUnit.textContent = 'Other (specify)';
+      unitSelect.appendChild(otherUnit);
+      document.getElementById('cl-bodycomp-date').valueAsDate = new Date();
+
+      testSelect.addEventListener('change', (e) => {
+        const custom = document.getElementById('cl-bodycomp-test-custom');
+        custom.style.display = e.target.value === '__other__' ? 'block' : 'none';
+        const defaultUnit = COMMON_BODYCOMP_TESTS[e.target.value];
+        if (defaultUnit) unitSelect.value = defaultUnit;
+      });
+      unitSelect.addEventListener('change', (e) => {
+        document.getElementById('cl-bodycomp-unit-custom').style.display = e.target.value === '__other__' ? 'block' : 'none';
+      });
+
+      document.getElementById('cl-bodycomp-save-btn').onclick = async () => {
+        const btn = document.getElementById('cl-bodycomp-save-btn');
+        const msg = document.getElementById('cl-bodycomp-msg');
+        const testVal = testSelect.value === '__other__' ? document.getElementById('cl-bodycomp-test-custom').value.trim() : testSelect.value;
+        const unitVal = unitSelect.value === '__other__' ? document.getElementById('cl-bodycomp-unit-custom').value.trim() : unitSelect.value;
+        const value = parseFloat(document.getElementById('cl-bodycomp-value').value);
+        const testDate = document.getElementById('cl-bodycomp-date').value;
+        if (!testVal || isNaN(value)) return;
+        btn.disabled = true;
+        const { error } = await supabaseClient.from('body_composition').insert({
+          patient_id: patientId, test_name: testVal, value, unit: unitVal, test_date: testDate,
+        });
+        btn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : 'Result added.';
+        if (!error) {
+          document.getElementById('cl-bodycomp-value').value = '';
+          renderClinicianBodyComposition(patientId);
+        }
+      };
+
       const { data } = await supabaseClient.from('body_composition').select('*').eq('patient_id', patientId).order('test_date', { ascending: true });
       clBodyCompData = data || [];
       const tabsWrap = document.getElementById('cl-bodycomp-tabs');

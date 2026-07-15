@@ -297,20 +297,43 @@
       </div>
     </section>
 
-    <!-- ── BODY COMPOSITION & FITNESS (paid, clinician-entered, read-only) ── -->
+    <!-- ── BODY COMPOSITION & FITNESS (paid, editable by patient and clinician) ── -->
     <section class="section" id="bodycomp-section">
       <div class="panel">
-        <h2 class="panel-title">Body Composition & Fitness</h2>
-        <p class="panel-sub">Logged by your clinician after in-office assessments.</p>
+        <h2 class="panel-title" id="bodycomp-form-title">Log a Result</h2>
+        <p class="panel-sub">Body composition and fitness assessments — from your own scale, or entered by your clinician after an in-office scan.</p>
+        <form id="bodycomp-form" class="grid-2" style="align-items:end;">
+          <div>
+            <label for="bodycomp-test-select">Test</label>
+            <select id="bodycomp-test-select" required></select>
+            <input type="text" id="bodycomp-test-custom" placeholder="Test name" style="display:none;" />
+            <label for="bodycomp-value">Value</label>
+            <input type="number" id="bodycomp-value" step="0.01" required placeholder="e.g. 22.5" />
+          </div>
+          <div>
+            <label for="bodycomp-unit-select">Unit</label>
+            <select id="bodycomp-unit-select"></select>
+            <input type="text" id="bodycomp-unit-custom" placeholder="Unit" style="display:none;" />
+            <label for="bodycomp-date">Test date</label>
+            <input type="date" id="bodycomp-date" required />
+          </div>
+          <button type="submit" class="btn-sage" id="bodycomp-save-btn" style="grid-column:1/-1;">Add Result</button>
+          <button type="button" class="btn-quiet" id="bodycomp-cancel-edit-btn" style="grid-column:1/-1;display:none;">Cancel Edit</button>
+        </form>
+        <div class="msg" id="bodycomp-msg"></div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">Your Tests</h2>
+        <p class="panel-sub" id="bodycomp-tests-empty">No results logged yet — add your first one above.</p>
         <div class="tabs" id="bodycomp-test-list"></div>
         <div id="bodycomp-detail-wrap" style="display:none;">
           <div class="chart-wrap"><canvas id="bodycomp-chart"></canvas></div>
           <table class="data-table" id="bodycomp-table" style="margin-top:20px;">
-            <thead><tr><th>Date</th><th>Value</th></tr></thead>
+            <thead><tr><th>Date</th><th>Value</th><th></th></tr></thead>
             <tbody id="bodycomp-tbody"></tbody>
           </table>
         </div>
-        <p class="empty-state" id="bodycomp-empty" style="display:none;">No body composition data logged yet.</p>
       </div>
     </section>
 
@@ -623,8 +646,10 @@
       document.getElementById('detail-dob').value = profile.date_of_birth || '';
       document.getElementById('detail-gender').value = profile.gender || '';
       document.getElementById('bw-date').valueAsDate = new Date();
+      document.getElementById('bodycomp-date').valueAsDate = new Date();
       document.getElementById('wellbeing-date').valueAsDate = new Date();
       populateBwDropdowns();
+      populateBodyCompDropdowns();
       buildWellbeingSliders();
 
       if (profile.subscription_tier === 'paid') {
@@ -1079,17 +1104,63 @@
 
 
     // ── Medications ──
-    // ── Body Composition & Fitness (read-only, clinician-entered) ──
+    // ── Body Composition & Fitness (editable by patient and clinician) ──
+    const COMMON_BODYCOMP_TESTS = {
+      'Body Fat %': '%', 'Skeletal Muscle Mass': 'kg', 'Visceral Fat Level': 'level',
+      'Bone Mineral Density': 'g/cm\u00b2', 'Total Body Water %': '%', 'Lean Body Mass': 'kg',
+      'BMR': 'kcal/day', 'Grip Strength \u2014 Left': 'kg', 'Grip Strength \u2014 Right': 'kg',
+    };
+    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level'];
+
+    function populateBodyCompDropdowns() {
+      const testSelect = document.getElementById('bodycomp-test-select');
+      Object.keys(COMMON_BODYCOMP_TESTS).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        testSelect.appendChild(opt);
+      });
+      const otherTestOpt = document.createElement('option');
+      otherTestOpt.value = '__other__'; otherTestOpt.textContent = 'Other (specify)';
+      testSelect.appendChild(otherTestOpt);
+
+      const unitSelect = document.getElementById('bodycomp-unit-select');
+      COMMON_BODYCOMP_UNITS.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u; opt.textContent = u;
+        unitSelect.appendChild(opt);
+      });
+      const otherUnitOpt = document.createElement('option');
+      otherUnitOpt.value = '__other__'; otherUnitOpt.textContent = 'Other (specify)';
+      unitSelect.appendChild(otherUnitOpt);
+    }
+
+    document.getElementById('bodycomp-test-select').addEventListener('change', (e) => {
+      const custom = document.getElementById('bodycomp-test-custom');
+      if (e.target.value === '__other__') {
+        custom.style.display = 'block'; custom.required = true;
+      } else {
+        custom.style.display = 'none'; custom.required = false;
+        const defaultUnit = COMMON_BODYCOMP_TESTS[e.target.value];
+        if (defaultUnit) document.getElementById('bodycomp-unit-select').value = defaultUnit;
+      }
+    });
+
+    document.getElementById('bodycomp-unit-select').addEventListener('change', (e) => {
+      const custom = document.getElementById('bodycomp-unit-custom');
+      custom.style.display = e.target.value === '__other__' ? 'block' : 'none';
+    });
+
     let allBodyComp = [];
     let activeBodyCompTest = null;
     let bodyCompChart = null;
+    let bodyCompEditingId = null;
 
     async function loadBodyComposition() {
       const { data } = await supabaseClient.from('body_composition').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: true });
       allBodyComp = data || [];
 
       const testListWrap = document.getElementById('bodycomp-test-list');
-      const emptyMsg = document.getElementById('bodycomp-empty');
+      const emptyMsg = document.getElementById('bodycomp-tests-empty');
       testListWrap.innerHTML = '';
 
       if (allBodyComp.length === 0) {
@@ -1099,7 +1170,12 @@
       }
       emptyMsg.style.display = 'none';
 
-      const testNames = [...new Set(allBodyComp.map(r => r.test_name))];
+      const testNames = [...new Set(allBodyComp.map(r => r.test_name))]
+        .sort((a, b) => {
+          const lastA = Math.max(...allBodyComp.filter(r => r.test_name === a).map(r => new Date(r.test_date).getTime()));
+          const lastB = Math.max(...allBodyComp.filter(r => r.test_name === b).map(r => new Date(r.test_date).getTime()));
+          return lastB - lastA;
+        });
       if (!activeBodyCompTest || !testNames.includes(activeBodyCompTest)) activeBodyCompTest = testNames[0];
 
       testNames.forEach(name => {
@@ -1137,10 +1213,95 @@
       [...entries].reverse().forEach(r => {
         const tr = document.createElement('tr');
         const dateStr = new Date(r.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-        tr.innerHTML = `<td>${dateStr}</td><td>${r.value}${r.unit ? ' ' + r.unit : ''}</td>`;
+        tr.innerHTML = `<td>${dateStr}</td><td>${r.value}${r.unit ? ' ' + r.unit : ''}</td><td class="row-actions"><button class="btn-quiet" data-action="edit" data-id="${r.id}">Edit</button> <button class="btn-quiet" data-action="delete" data-id="${r.id}">Delete</button></td>`;
         tbody.appendChild(tr);
       });
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(b => b.addEventListener('click', async () => {
+        await supabaseClient.from('body_composition').delete().eq('id', b.dataset.id);
+        loadBodyComposition();
+      }));
+      tbody.querySelectorAll('button[data-action="edit"]').forEach(b => b.addEventListener('click', () => {
+        const entry = allBodyComp.find(r => r.id === b.dataset.id);
+        startBodyCompEdit(entry);
+      }));
     }
+
+    function startBodyCompEdit(entry) {
+      bodyCompEditingId = entry.id;
+      const testSelect = document.getElementById('bodycomp-test-select');
+      const testCustom = document.getElementById('bodycomp-test-custom');
+      const unitSelect = document.getElementById('bodycomp-unit-select');
+      const unitCustom = document.getElementById('bodycomp-unit-custom');
+
+      if (COMMON_BODYCOMP_TESTS.hasOwnProperty(entry.test_name)) {
+        testSelect.value = entry.test_name; testCustom.style.display = 'none'; testCustom.required = false;
+      } else {
+        testSelect.value = '__other__'; testCustom.style.display = 'block'; testCustom.required = true; testCustom.value = entry.test_name;
+      }
+      if (COMMON_BODYCOMP_UNITS.includes(entry.unit)) {
+        unitSelect.value = entry.unit; unitCustom.style.display = 'none';
+      } else {
+        unitSelect.value = '__other__'; unitCustom.style.display = 'block'; unitCustom.value = entry.unit || '';
+      }
+      document.getElementById('bodycomp-value').value = entry.value;
+      document.getElementById('bodycomp-date').value = entry.test_date;
+
+      document.getElementById('bodycomp-form-title').textContent = 'Edit Result';
+      document.getElementById('bodycomp-save-btn').textContent = 'Update Result';
+      document.getElementById('bodycomp-cancel-edit-btn').style.display = 'inline-block';
+      document.getElementById('bodycomp-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetBodyCompForm() {
+      bodyCompEditingId = null;
+      document.getElementById('bodycomp-form').reset();
+      document.getElementById('bodycomp-test-custom').style.display = 'none';
+      document.getElementById('bodycomp-unit-custom').style.display = 'none';
+      document.getElementById('bodycomp-date').valueAsDate = new Date();
+      document.getElementById('bodycomp-form-title').textContent = 'Log a Result';
+      document.getElementById('bodycomp-save-btn').textContent = 'Add Result';
+      document.getElementById('bodycomp-cancel-edit-btn').style.display = 'none';
+    }
+
+    document.getElementById('bodycomp-cancel-edit-btn').addEventListener('click', resetBodyCompForm);
+
+    document.getElementById('bodycomp-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('bodycomp-msg');
+      const btn = document.getElementById('bodycomp-save-btn');
+
+      const testSelectVal = document.getElementById('bodycomp-test-select').value;
+      const testName = testSelectVal === '__other__' ? document.getElementById('bodycomp-test-custom').value.trim() : testSelectVal;
+      const unitSelectVal = document.getElementById('bodycomp-unit-select').value;
+      const unit = unitSelectVal === '__other__' ? document.getElementById('bodycomp-unit-custom').value.trim() : unitSelectVal;
+
+      const payload = {
+        test_name: testName,
+        value: parseFloat(document.getElementById('bodycomp-value').value),
+        unit,
+        test_date: document.getElementById('bodycomp-date').value,
+      };
+      if (!payload.test_name || isNaN(payload.value)) return;
+
+      btn.disabled = true; btn.textContent = bodyCompEditingId ? 'Updating…' : 'Saving…';
+      let error;
+      if (bodyCompEditingId) {
+        ({ error } = await supabaseClient.from('body_composition').update(payload).eq('id', bodyCompEditingId));
+      } else {
+        ({ error } = await supabaseClient.from('body_composition').insert({ ...payload, patient_id: currentUser.id }));
+      }
+      btn.disabled = false;
+
+      if (error) {
+        msg.textContent = error.message; msg.className = 'msg show error';
+        btn.textContent = bodyCompEditingId ? 'Update Result' : 'Add Result';
+      } else {
+        msg.textContent = bodyCompEditingId ? 'Result updated.' : 'Result added.'; msg.className = 'msg show success';
+        activeBodyCompTest = testName;
+        resetBodyCompForm();
+        loadBodyComposition();
+      }
+    });
 
     // ── Wellbeing Scores (patient self-entry daily check-in) ──
     const WELLBEING_LABELS = {
