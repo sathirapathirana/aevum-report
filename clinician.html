@@ -145,9 +145,12 @@
 
     const METRIC_LABELS = {
       weight_kg: 'Weight (kg)', systolic_bp: 'Systolic BP (mmHg)', diastolic_bp: 'Diastolic BP (mmHg)',
-      resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)', fasting_glucose: 'Fasting Glucose (mg/dL)',
-      steps: 'Daily Steps', waist_cm: 'Waist (cm)',
+      resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)',
+      steps: 'Daily Steps', waist_cm: 'Waist (cm)', hip_cm: 'Hip (cm)',
+      blood_oxygen: 'Blood Oxygen (%)', hrv: 'HRV (ms)', home_glucose: 'Home Blood Glucose (mg/dL)',
+      alcohol_units: 'Alcohol (units)', caffeine_mg: 'Caffeine (mg)', water_ml: 'Water (ml)',
     };
+    const COMPUTED_METRICS = { bmi: { title: 'BMI' }, whr: { title: 'Waist-to-Hip Ratio' } };
 
     // ── Shared category structure — used for both the Health Snapshot
     // (all categories) and the Plan (only categories marked plan:true) ──
@@ -502,7 +505,7 @@
     }
 
     async function loadPatients() {
-      const { data } = await supabaseClient.from('profiles').select('id, full_name, subscription_tier, email, date_of_birth, gender').order('created_at', { ascending: false });
+      const { data } = await supabaseClient.from('profiles').select('id, full_name, subscription_tier, email, date_of_birth, gender, height_cm').order('created_at', { ascending: false });
       allPatients = data || [];
       renderPatientList(allPatients);
     }
@@ -693,6 +696,7 @@
           metaParts.push(age + ' yrs (' + dob.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) + ')');
         }
         if (patient.gender) metaParts.push(patient.gender);
+        if (patient.height_cm) metaParts.push(patient.height_cm + ' cm');
         document.getElementById('patient-meta-line').textContent = metaParts.join(' · ') || 'No additional details on file yet';
       }
       document.getElementById('name-input').value = patient.full_name || '';
@@ -966,19 +970,29 @@
       empty.style.display = 'none'; canvas.style.display = 'block';
 
       const metricsPresent = [...new Set(clMeasurementsData.map(m => m.metric))];
-      if (!clActiveMetric || !metricsPresent.includes(clActiveMetric)) clActiveMetric = metricsPresent[0];
+      if (!clActiveMetric || !(metricsPresent.includes(clActiveMetric) || COMPUTED_METRICS[clActiveMetric])) clActiveMetric = metricsPresent[0];
 
       metricsPresent.forEach(key => {
         const btn = document.createElement('button');
         btn.className = 'tab-btn' + (key === clActiveMetric ? ' active' : '');
         btn.textContent = (METRIC_LABELS[key] || key).split(' (')[0];
-        btn.addEventListener('click', () => { clActiveMetric = key; drawClinicianMetricChart(); });
+        btn.addEventListener('click', () => { clActiveMetric = key; drawClinicianMetricChart(patientId); });
         tabsWrap.appendChild(btn);
       });
-      drawClinicianMetricChart();
+      Object.entries(COMPUTED_METRICS).forEach(([key, meta]) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (key === clActiveMetric ? ' active' : '');
+        btn.textContent = meta.title;
+        btn.addEventListener('click', () => { clActiveMetric = key; drawClinicianMetricChart(patientId); });
+        tabsWrap.appendChild(btn);
+      });
+      drawClinicianMetricChart(patientId);
     }
 
-    function drawClinicianMetricChart() {
+    function drawClinicianMetricChart(patientId) {
+      if (clActiveMetric === 'bmi') return drawClinicianBmiChart(patientId);
+      if (clActiveMetric === 'whr') return drawClinicianWhrChart();
+
       document.querySelectorAll('#cl-metric-tabs .tab-btn').forEach(b => {
         b.classList.toggle('active', b.textContent === (METRIC_LABELS[clActiveMetric] || clActiveMetric).split(' (')[0]);
       });
@@ -994,6 +1008,42 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+    }
+
+    function drawClinicianComputedChart(label, points) {
+      document.querySelectorAll('#cl-metric-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === label));
+      const canvas = document.getElementById('cl-metric-chart');
+      if (clMetricChart) clMetricChart.destroy();
+      clMetricChart = new Chart(canvas, {
+        type: 'line',
+        data: { labels: points.map(p => p.recorded_at), datasets: [{
+          label, data: points.map(p => p.value),
+          borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
+        }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+    }
+
+    function drawClinicianBmiChart(patientId) {
+      const patient = allPatients.find(p => p.id === patientId);
+      if (!patient || !patient.height_cm) { drawClinicianComputedChart('BMI', []); return; }
+      const heightM = patient.height_cm / 100;
+      const points = clMeasurementsData
+        .filter(m => m.metric === 'weight_kg')
+        .map(m => ({ recorded_at: m.recorded_at, value: +(m.value / (heightM * heightM)).toFixed(1) }));
+      drawClinicianComputedChart('BMI', points);
+    }
+
+    function drawClinicianWhrChart() {
+      const waist = clMeasurementsData.filter(m => m.metric === 'waist_cm');
+      const hip = clMeasurementsData.filter(m => m.metric === 'hip_cm');
+      const hipByDate = {};
+      hip.forEach(h => { hipByDate[h.recorded_at] = h.value; });
+      const points = waist
+        .filter(w => hipByDate[w.recorded_at])
+        .map(w => ({ recorded_at: w.recorded_at, value: +(w.value / hipByDate[w.recorded_at]).toFixed(2) }));
+      drawClinicianComputedChart('Waist-to-Hip Ratio', points);
     }
 
     async function renderClinicianBloodWork(patientId) {
@@ -1044,8 +1094,9 @@
       'Body Fat %': '%', 'Skeletal Muscle Mass': 'kg', 'Visceral Fat Level': 'level',
       'Bone Mineral Density': 'g/cm\u00b2', 'Total Body Water %': '%', 'Lean Body Mass': 'kg',
       'BMR': 'kcal/day', 'Grip Strength \u2014 Left': 'kg', 'Grip Strength \u2014 Right': 'kg',
+      'VO2 Max': 'ml/kg/min',
     };
-    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level'];
+    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level', 'ml/kg/min'];
 
     async function renderClinicianBodyComposition(patientId) {
       // Populate dropdowns fresh each time (the detail panel is rebuilt per patient selection)

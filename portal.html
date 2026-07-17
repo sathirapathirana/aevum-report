@@ -235,9 +235,15 @@
               <option value="diastolic_bp">Blood Pressure — Diastolic</option>
               <option value="resting_hr">Resting Heart Rate</option>
               <option value="sleep_hours">Sleep Duration</option>
-              <option value="fasting_glucose">Fasting Glucose</option>
               <option value="steps">Daily Steps</option>
               <option value="waist_cm">Waist Circumference</option>
+              <option value="hip_cm">Hip Circumference</option>
+              <option value="blood_oxygen">Blood Oxygen (SpO2)</option>
+              <option value="hrv">Heart Rate Variability (HRV)</option>
+              <option value="home_glucose">Home Blood Glucose</option>
+              <option value="alcohol_units">Alcohol</option>
+              <option value="caffeine_mg">Caffeine</option>
+              <option value="water_ml">Water Intake</option>
             </select>
             <label for="value">Value</label>
             <input type="number" id="value" step="0.1" required placeholder="e.g. 72.4" />
@@ -403,6 +409,9 @@
             <option value="Non-binary">Non-binary</option>
             <option value="Other">Other</option>
           </select>
+          <label for="detail-height">Height (cm)</label>
+          <input type="number" id="detail-height" step="0.1" placeholder="e.g. 170" />
+          <p style="font-size:11px;color:var(--mid);margin:-12px 0 18px;">Used to calculate your BMI trend under Measurements. Set once — no need to update unless it changes.</p>
           <button type="submit" class="btn-sage" id="details-btn">Save Details</button>
         </form>
         <div class="msg" id="details-msg"></div>
@@ -432,9 +441,20 @@
 
     const METRIC_LABELS = {
       weight_kg: 'Weight (kg)', systolic_bp: 'Systolic BP (mmHg)', diastolic_bp: 'Diastolic BP (mmHg)',
-      resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)', fasting_glucose: 'Fasting Glucose (mg/dL)',
-      steps: 'Daily Steps', waist_cm: 'Waist (cm)',
+      resting_hr: 'Resting HR (bpm)', sleep_hours: 'Sleep (hrs)',
+      steps: 'Daily Steps', waist_cm: 'Waist (cm)', hip_cm: 'Hip (cm)',
+      blood_oxygen: 'Blood Oxygen (%)', hrv: 'HRV (ms)', home_glucose: 'Home Blood Glucose (mg/dL)',
+      alcohol_units: 'Alcohol (units)', caffeine_mg: 'Caffeine (mg)', water_ml: 'Water (ml)',
     };
+
+    // Computed trends — derived from raw logged metrics rather than
+    // logged directly. BMI uses the patient's stored height; Waist-to-Hip
+    // Ratio pairs same-date waist_cm and hip_cm entries.
+    const COMPUTED_METRICS = {
+      bmi: { title: 'BMI' },
+      whr: { title: 'Waist-to-Hip Ratio' },
+    };
+    let patientHeightCm = null;
 
     // ── Shared category structure — matches the clinician editor exactly ──
     const HEALTH_CATEGORIES = [
@@ -651,6 +671,8 @@
       document.getElementById('detail-name').value = profile.full_name || '';
       document.getElementById('detail-dob').value = profile.date_of_birth || '';
       document.getElementById('detail-gender').value = profile.gender || '';
+      document.getElementById('detail-height').value = profile.height_cm || '';
+      patientHeightCm = profile.height_cm || null;
       document.getElementById('bw-date').valueAsDate = new Date();
       document.getElementById('bodycomp-date').valueAsDate = new Date();
       document.getElementById('wellbeing-date').valueAsDate = new Date();
@@ -881,9 +903,24 @@
         });
         wrap.appendChild(btn);
       });
+      Object.entries(COMPUTED_METRICS).forEach(([key, meta]) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn';
+        btn.textContent = meta.title;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#metric-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeMetric = key;
+          loadChart(key);
+        });
+        wrap.appendChild(btn);
+      });
     }
 
     async function loadChart(metric) {
+      if (metric === 'bmi') return loadComputedBmiChart();
+      if (metric === 'whr') return loadComputedWhrChart();
+
       const { data, error } = await supabaseClient.from('measurements').select('value, recorded_at')
         .eq('patient_id', currentUser.id).eq('metric', metric).order('recorded_at', { ascending: true });
 
@@ -891,6 +928,10 @@
       const canvas = document.getElementById('trend-chart');
       if (error) { console.error(error); return; }
 
+      renderTrendChart(data, METRIC_LABELS[metric], emptyState, canvas);
+    }
+
+    function renderTrendChart(data, label, emptyState, canvas) {
       if (!data || data.length === 0) {
         emptyState.style.display = 'block'; canvas.style.display = 'none';
         if (chart) chart.destroy();
@@ -901,12 +942,45 @@
       chart = new Chart(canvas, {
         type: 'line',
         data: { labels: data.map(d => d.recorded_at), datasets: [{
-          label: METRIC_LABELS[metric], data: data.map(d => d.value),
+          label, data: data.map(d => d.value),
           borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3,
         }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+    }
+
+    async function loadComputedBmiChart() {
+      const emptyState = document.getElementById('empty-state');
+      const canvas = document.getElementById('trend-chart');
+      if (!patientHeightCm) {
+        emptyState.textContent = 'Set your height under Account to see your BMI trend.';
+        emptyState.style.display = 'block'; canvas.style.display = 'none';
+        if (chart) chart.destroy();
+        return;
+      }
+      emptyState.textContent = 'No entries yet for this measurement.';
+      const { data } = await supabaseClient.from('measurements').select('value, recorded_at')
+        .eq('patient_id', currentUser.id).eq('metric', 'weight_kg').order('recorded_at', { ascending: true });
+      const heightM = patientHeightCm / 100;
+      const computed = (data || []).map(d => ({ recorded_at: d.recorded_at, value: +(d.value / (heightM * heightM)).toFixed(1) }));
+      renderTrendChart(computed, 'BMI', emptyState, canvas);
+    }
+
+    async function loadComputedWhrChart() {
+      const emptyState = document.getElementById('empty-state');
+      const canvas = document.getElementById('trend-chart');
+      emptyState.textContent = 'No entries yet for this measurement.';
+      const { data: waistData } = await supabaseClient.from('measurements').select('value, recorded_at')
+        .eq('patient_id', currentUser.id).eq('metric', 'waist_cm').order('recorded_at', { ascending: true });
+      const { data: hipData } = await supabaseClient.from('measurements').select('value, recorded_at')
+        .eq('patient_id', currentUser.id).eq('metric', 'hip_cm');
+      const hipByDate = {};
+      (hipData || []).forEach(h => { hipByDate[h.recorded_at] = h.value; });
+      const computed = (waistData || [])
+        .filter(w => hipByDate[w.recorded_at])
+        .map(w => ({ recorded_at: w.recorded_at, value: +(w.value / hipByDate[w.recorded_at]).toFixed(2) }));
+      renderTrendChart(computed, 'Waist-to-Hip Ratio', emptyState, canvas);
     }
 
     document.getElementById('measurement-form').addEventListener('submit', async (e) => {
@@ -1141,8 +1215,9 @@
       'Body Fat %': '%', 'Skeletal Muscle Mass': 'kg', 'Visceral Fat Level': 'level',
       'Bone Mineral Density': 'g/cm\u00b2', 'Total Body Water %': '%', 'Lean Body Mass': 'kg',
       'BMR': 'kcal/day', 'Grip Strength \u2014 Left': 'kg', 'Grip Strength \u2014 Right': 'kg',
+      'VO2 Max': 'ml/kg/min',
     };
-    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level'];
+    const COMMON_BODYCOMP_UNITS = ['%', 'kg', 'g/cm\u00b2', 'kcal/day', 'level', 'ml/kg/min'];
 
     function populateBodyCompDropdowns() {
       const testSelect = document.getElementById('bodycomp-test-select');
@@ -1474,6 +1549,7 @@
         full_name: document.getElementById('detail-name').value.trim() || null,
         date_of_birth: document.getElementById('detail-dob').value || null,
         gender: document.getElementById('detail-gender').value || null,
+        height_cm: document.getElementById('detail-height').value ? parseFloat(document.getElementById('detail-height').value) : null,
       };
       btn.disabled = true; btn.textContent = 'Saving…';
       const { error } = await supabaseClient.from('profiles').update(payload).eq('id', currentUser.id);
@@ -1482,6 +1558,7 @@
       else {
         msg.textContent = 'Details saved.'; msg.className = 'msg show success';
         profile.full_name = payload.full_name;
+        patientHeightCm = payload.height_cm;
         document.getElementById('welcome-name').textContent = payload.full_name || currentUser.email;
       }
     });
