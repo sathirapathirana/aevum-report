@@ -379,6 +379,12 @@
     // supabase-js's default error.message for a failed Edge Function call is just
     // a generic wrapper ("...non-2xx status code") — the actual reason is in the
     // response body itself, which needs to be read out separately.
+    // Shown whenever a write silently affects 0 rows despite no error —
+    // almost always a stale/conflicting session (e.g. RLS quietly blocking
+    // the write), most common when a clinician and patient session share
+    // the same browser and clobber each other's stored login.
+    const SESSION_STALE_MSG = 'Nothing was actually saved \u2014 your session may have gone stale. Try signing out and back in, then try again.';
+
     async function getFunctionErrorMessage(error) {
       try {
         const body = await error.context.json();
@@ -798,15 +804,16 @@
         const btn = document.getElementById('save-tier-btn');
         const msg = document.getElementById('tier-msg');
         btn.disabled = true;
-        const { error } = await supabaseClient.from('profiles').update({
+        const { data, error } = await supabaseClient.from('profiles').update({
           full_name: document.getElementById('name-input').value.trim() || null,
           subscription_tier: document.getElementById('tier-select').value,
           next_visit_date: document.getElementById('visit-date-input').value || null,
-        }).eq('id', id);
+        }).eq('id', id).select();
         btn.disabled = false;
-        msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Saved.';
-        if (!error) {
+        const silentlyBlocked = !error && (!data || data.length === 0);
+        msg.className = 'msg show ' + (error || silentlyBlocked ? 'error' : 'success');
+        msg.textContent = error ? error.message : (silentlyBlocked ? SESSION_STALE_MSG : 'Saved.');
+        if (!error && !silentlyBlocked) {
           await loadPatients();
           wrap.querySelector('.panel-title').textContent = document.getElementById('name-input').value.trim() || patient.email || '(No name set)';
         }
@@ -834,15 +841,16 @@
           reviewed_by: document.getElementById('goals-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
         };
-        let error;
+        let error, data;
         if (goalsData) {
-          ({ error } = await supabaseClient.from('goals').update(payload).eq('id', goalsData.id));
+          ({ data, error } = await supabaseClient.from('goals').update(payload).eq('id', goalsData.id).select());
         } else {
-          ({ error } = await supabaseClient.from('goals').insert(payload));
+          ({ data, error } = await supabaseClient.from('goals').insert(payload).select());
         }
         btn.disabled = false;
-        msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Goals saved.';
+        const silentlyBlocked = !error && (!data || data.length === 0);
+        msg.className = 'msg show ' + (error || silentlyBlocked ? 'error' : 'success');
+        msg.textContent = error ? error.message : (silentlyBlocked ? SESSION_STALE_MSG : 'Goals saved.');
       });
 
       document.getElementById('save-actions-btn').addEventListener('click', async () => {
@@ -855,15 +863,16 @@
           reviewed_by: document.getElementById('actions-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
         };
-        let error;
+        let error, data;
         if (currentActions) {
-          ({ error } = await supabaseClient.from('actions').update(payload).eq('id', currentActions.id));
+          ({ data, error } = await supabaseClient.from('actions').update(payload).eq('id', currentActions.id).select());
         } else {
-          ({ error } = await supabaseClient.from('actions').insert({ ...payload, patient_id: id }));
+          ({ data, error } = await supabaseClient.from('actions').insert({ ...payload, patient_id: id }).select());
         }
         btn.disabled = false;
-        msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Actions saved.';
+        const silentlyBlocked = !error && (!data || data.length === 0);
+        msg.className = 'msg show ' + (error || silentlyBlocked ? 'error' : 'success');
+        msg.textContent = error ? error.message : (silentlyBlocked ? SESSION_STALE_MSG : 'Actions saved.');
       });
 
       document.getElementById('regen-all-actions-btn').addEventListener('click', () => {
@@ -874,13 +883,14 @@
         const btn = document.getElementById('new-cycle-btn');
         if (!confirm('Start a new 3-month cycle? The current one will be kept as history, and a fresh cycle will start (carrying forward the current content as a starting point).')) return;
         btn.disabled = true;
-        const { error } = await supabaseClient.from('actions').insert({
+        const { data, error } = await supabaseClient.from('actions').insert({
           patient_id: id,
           content: currentActions ? currentActions.content : {},
           status: 'ai_draft',
-        });
+        }).select();
         btn.disabled = false;
         if (error) { alert('Could not start new cycle: ' + error.message); return; }
+        if (!data || data.length === 0) { alert(SESSION_STALE_MSG); return; }
         selectPatient(id);
       });
 
@@ -895,15 +905,16 @@
           reviewed_by: document.getElementById('snapshot-status-select').value === 'reviewed' ? (await supabaseClient.auth.getUser()).data.user.id : null,
           updated_at: new Date().toISOString(),
         };
-        let error;
+        let error, data;
         if (snapshotData) {
-          ({ error } = await supabaseClient.from('health_snapshots').update(payload).eq('id', snapshotData.id));
+          ({ data, error } = await supabaseClient.from('health_snapshots').update(payload).eq('id', snapshotData.id).select());
         } else {
-          ({ error } = await supabaseClient.from('health_snapshots').insert(payload));
+          ({ data, error } = await supabaseClient.from('health_snapshots').insert(payload).select());
         }
         btn.disabled = false;
-        msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : 'Snapshot saved.';
+        const silentlyBlocked = !error && (!data || data.length === 0);
+        msg.className = 'msg show ' + (error || silentlyBlocked ? 'error' : 'success');
+        msg.textContent = error ? error.message : (silentlyBlocked ? SESSION_STALE_MSG : 'Snapshot saved.');
       });
 
       document.getElementById('save-note-btn').addEventListener('click', async () => {
@@ -919,16 +930,17 @@
           content,
           updated_at: new Date().toISOString(),
         };
-        let error;
+        let error, data;
         if (editingNoteId) {
-          ({ error } = await supabaseClient.from('visit_notes').update(payload).eq('id', editingNoteId));
+          ({ data, error } = await supabaseClient.from('visit_notes').update(payload).eq('id', editingNoteId).select());
         } else {
-          ({ error } = await supabaseClient.from('visit_notes').insert({ ...payload, created_by: userData.user.id }));
+          ({ data, error } = await supabaseClient.from('visit_notes').insert({ ...payload, created_by: userData.user.id }).select());
         }
         btn.disabled = false;
-        msg.className = 'msg show ' + (error ? 'error' : 'success');
-        msg.textContent = error ? error.message : (editingNoteId ? 'Note updated.' : 'Note added.');
-        if (!error) selectPatient(id);
+        const silentlyBlocked = !error && (!data || data.length === 0);
+        msg.className = 'msg show ' + (error || silentlyBlocked ? 'error' : 'success');
+        msg.textContent = error ? error.message : (silentlyBlocked ? SESSION_STALE_MSG : (editingNoteId ? 'Note updated.' : 'Note added.'));
+        if (!error && !silentlyBlocked) selectPatient(id);
       });
 
       renderClinicianMeasurements(id);
