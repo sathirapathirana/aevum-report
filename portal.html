@@ -194,7 +194,7 @@
 
       <div class="sub-section" id="actions-subsection">
         <div class="panel">
-          <h2 class="panel-title">Your Actions</h2>
+          <h2 class="panel-title">Your Actions for the Next 3 Months</h2>
           <span class="status-pill" id="actions-status-pill"></span>
           <div id="actions-content">Your actions are being prepared — check back shortly.</div>
         </div>
@@ -501,6 +501,12 @@
       ],
     };
     const GOALS_CATEGORIES = [GOALS_EXTRA_CATEGORY, ...ACTIONS_CATEGORIES];
+    const FOLLOWUP_CATEGORIES = ACTIONS_CATEGORIES.map(c => ({ key: c.key, title: c.title }));
+    const FOLLOWUP_FIELDS = [
+      { key: 'working', title: "What's Working" },
+      { key: 'not_working', title: "What's Not Working" },
+      { key: 'changes_made', title: 'Changes Made This Visit' },
+    ];
     const TIMEFRAMES = [
       { key: 'three_month', title: '3-Month' },
       { key: 'six_month', title: '6-Month' },
@@ -697,9 +703,9 @@
       const pill = document.getElementById('goals-status-pill');
       const content = document.getElementById('goals-content');
 
-      const hasContent = data ? renderGoalsArticle(content, data.content, data.primary_objective) : false;
+      const hasContent = (data && data.status === 'reviewed') ? renderGoalsArticle(content, data.content, data.primary_objective) : false;
 
-      if (!data || !hasContent) {
+      if (!hasContent) {
         content.innerHTML = '';
         const empty = document.createElement('p');
         empty.className = 'plan-empty-state';
@@ -710,13 +716,8 @@
       }
 
       pill.style.display = 'inline-block';
-      if (data.status === 'reviewed') {
-        pill.textContent = 'Reviewed by your clinician';
-        pill.className = 'status-pill reviewed';
-      } else {
-        pill.textContent = 'Draft \u2014 pending clinician review';
-        pill.className = 'status-pill draft';
-      }
+      pill.textContent = 'Reviewed by your clinician';
+      pill.className = 'status-pill reviewed';
     }
 
     async function loadActions() {
@@ -726,9 +727,9 @@
       const content = document.getElementById('actions-content');
       const pdfPanel = document.getElementById('pdf-panel');
 
-      const hasContent = data ? renderCategoryArticle(content, ACTIONS_CATEGORIES, data.content) : false;
+      const hasContent = (data && data.status === 'reviewed') ? renderCategoryArticle(content, ACTIONS_CATEGORIES, data.content) : false;
 
-      if (!data || !hasContent) {
+      if (!hasContent) {
         content.innerHTML = '';
         const empty = document.createElement('p');
         empty.className = 'plan-empty-state';
@@ -741,13 +742,8 @@
 
       pdfPanel.style.display = 'block';
       pill.style.display = 'inline-block';
-      if (data.status === 'reviewed') {
-        pill.textContent = 'Reviewed by your clinician';
-        pill.className = 'status-pill reviewed';
-      } else {
-        pill.textContent = 'Draft \u2014 pending clinician review';
-        pill.className = 'status-pill draft';
-      }
+      pill.textContent = 'Reviewed by your clinician';
+      pill.className = 'status-pill reviewed';
     }
 
     document.getElementById('download-pdf-btn').addEventListener('click', () => {
@@ -782,9 +778,7 @@
       const pill = document.getElementById('snapshot-status-pill');
       const content = document.getElementById('snapshot-content');
 
-      const hasContent = data ? renderCategoryArticle(content, HEALTH_CATEGORIES, data.content) : false;
-
-      if (!data || !hasContent) {
+      if (!data) {
         content.innerHTML = '';
         const cta = document.createElement('div');
         cta.className = 'snapshot-cta';
@@ -798,14 +792,30 @@
         return;
       }
 
-      pill.style.display = 'inline-block';
-      if (data.status === 'reviewed') {
-        pill.textContent = 'Reviewed by your clinician';
-        pill.className = 'status-pill reviewed';
-      } else {
-        pill.textContent = 'From your questionnaire \u2014 pending review';
-        pill.className = 'status-pill draft';
+      if (data.status !== 'reviewed') {
+        content.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'plan-empty-state';
+        empty.textContent = 'Your health snapshot is being reviewed by your clinician — check back shortly.';
+        content.appendChild(empty);
+        pill.style.display = 'none';
+        return;
       }
+
+      const hasContent = renderCategoryArticle(content, HEALTH_CATEGORIES, data.content);
+      if (!hasContent) {
+        content.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'plan-empty-state';
+        empty.textContent = 'Your health snapshot is being prepared — check back shortly.';
+        content.appendChild(empty);
+        pill.style.display = 'none';
+        return;
+      }
+
+      pill.style.display = 'inline-block';
+      pill.textContent = 'Reviewed by your clinician';
+      pill.className = 'status-pill reviewed';
     }
 
     // ── Follow-up notes ──
@@ -814,22 +824,44 @@
       const wrap = document.getElementById('notes-timeline');
       const empty = document.getElementById('notes-empty');
       wrap.innerHTML = '';
-      if (!data || data.length === 0) { empty.style.display = 'block'; return; }
+
+      const entriesWithContent = (data || []).filter(n =>
+        FOLLOWUP_CATEGORIES.some(cat => FOLLOWUP_FIELDS.some(f => n.content?.[cat.key]?.[f.key]?.trim()))
+      );
+
+      if (entriesWithContent.length === 0) { empty.style.display = 'block'; return; }
       empty.style.display = 'none';
-      data.forEach(n => {
+
+      entriesWithContent.forEach(n => {
         const item = document.createElement('div');
         item.className = 'patient-timeline-item';
-        const dateStr = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-        item.innerHTML = `
-          <div class="patient-timeline-date"></div>
-          ${n.working ? '<div class="patient-timeline-field"><b>Working</b><span></span></div>' : ''}
-          ${n.not_working ? '<div class="patient-timeline-field"><b>Not Working</b><span></span></div>' : ''}
-          ${n.changes_made ? '<div class="patient-timeline-field"><b>Changes Made</b><span></span></div>' : ''}
-        `;
-        item.querySelector('.patient-timeline-date').textContent = dateStr;
-        const spans = item.querySelectorAll('.patient-timeline-field span');
-        const vals = [n.working, n.not_working, n.changes_made].filter(Boolean);
-        spans.forEach((s, i) => { s.textContent = vals[i]; });
+        const dateEl = document.createElement('div');
+        dateEl.className = 'patient-timeline-date';
+        dateEl.textContent = new Date(n.visit_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+        item.appendChild(dateEl);
+
+        FOLLOWUP_CATEGORIES.forEach(cat => {
+          const hasAny = FOLLOWUP_FIELDS.some(f => n.content?.[cat.key]?.[f.key]?.trim());
+          if (!hasAny) return;
+          const catLabel = document.createElement('div');
+          catLabel.style.cssText = 'font-family:Cormorant Garamond,serif;font-size:15px;color:var(--sage-deep);margin:12px 0 6px;';
+          catLabel.textContent = cat.title;
+          item.appendChild(catLabel);
+          FOLLOWUP_FIELDS.forEach(f => {
+            const val = n.content?.[cat.key]?.[f.key];
+            if (val && val.trim()) {
+              const fieldEl = document.createElement('div');
+              fieldEl.className = 'patient-timeline-field';
+              const b = document.createElement('b');
+              b.textContent = f.title;
+              const span = document.createElement('span');
+              span.textContent = val;
+              fieldEl.appendChild(b);
+              fieldEl.appendChild(span);
+              item.appendChild(fieldEl);
+            }
+          });
+        });
         wrap.appendChild(item);
       });
     }
