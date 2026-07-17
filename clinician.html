@@ -376,6 +376,18 @@
     // Calls the Supabase Edge Function that performs the actual Claude
     // generation server-side. See DEPLOY_EDGE_FUNCTION.md for setup —
     // these calls will error clearly until that function is deployed.
+    // supabase-js's default error.message for a failed Edge Function call is just
+    // a generic wrapper ("...non-2xx status code") — the actual reason is in the
+    // response body itself, which needs to be read out separately.
+    async function getFunctionErrorMessage(error) {
+      try {
+        const body = await error.context.json();
+        return body.error || error.message;
+      } catch (e) {
+        return error.message;
+      }
+    }
+
     async function regenerateCategory(patientId, categoryKey, buttonEl) {
       const original = buttonEl.textContent;
       buttonEl.disabled = true;
@@ -386,7 +398,7 @@
       buttonEl.disabled = false;
       buttonEl.textContent = original;
       if (error) {
-        alert('Regeneration failed: ' + error.message);
+        alert('Regeneration failed: ' + await getFunctionErrorMessage(error));
         return;
       }
       await selectPatient(patientId);
@@ -402,7 +414,7 @@
       buttonEl.disabled = false;
       buttonEl.textContent = original;
       if (error) {
-        alert('Regeneration failed: ' + error.message);
+        alert('Regeneration failed: ' + await getFunctionErrorMessage(error));
         return;
       }
       await selectPatient(patientId);
@@ -806,7 +818,7 @@
         btn.disabled = true; btn.textContent = 'Generating…';
         const { error } = await supabaseClient.functions.invoke('generate-plan', { body: { mode: 'initial', patientId: id } });
         btn.disabled = false; btn.textContent = original;
-        if (error) { alert('Generation failed: ' + error.message); return; }
+        if (error) { alert('Generation failed: ' + await getFunctionErrorMessage(error)); return; }
         selectPatient(id);
       });
 
