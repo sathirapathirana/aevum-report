@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membership — Aevum Protocol</title>
+  <meta name="description" content="Free tracking, or a doctor-led longevity membership — one-time or ongoing quarterly care with Aevum Protocol." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{--sage:#8B9068;--sage-deep:#6B7050;--sage-light:#B5BC9A;--sage-wash:#EDEEE8;--cream:#F5F4F0;--cream-dark:#ECEAE4;--white:#FFFFFF;--charcoal:#2C2C2C;--mid:#6A6A6A;--line:#D8D9D2;--gold:#C9A84C;--gold-light:#E8D5A0;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+    body{background:var(--cream);color:var(--charcoal);font-family:'Jost',sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(245,244,240,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+    .nav-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:15px;letter-spacing:0.35em;color:var(--sage);text-decoration:none;text-transform:uppercase;}
+    .nav-links{display:flex;gap:24px;list-style:none;}
+    .nav-links a{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);text-decoration:none;transition:color 0.2s;}
+    .nav-links a:hover{color:var(--sage);}
+    .nav-cta{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;background:var(--sage);color:var(--white)!important;padding:8px 18px;text-decoration:none;transition:background 0.2s;}
+    .nav-cta:hover{background:var(--sage-deep)!important;}
+    .page-header{padding:120px 24px 64px;background:var(--sage);}
+    .page-eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;}
+    .page-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(40px,8vw,64px);color:var(--white);line-height:1.05;margin-bottom:16px;}
+    .page-title em{font-style:italic;color:rgba(255,255,255,0.55);}
+    .page-desc{font-size:14px;color:rgba(255,255,255,0.6);max-width:480px;line-height:1.75;}
+    section{padding:72px 24px;}
+    .eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--sage);margin-bottom:8px;}
+    .section-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(30px,5vw,44px);color:var(--charcoal);line-height:1.15;margin-bottom:16px;}
+    .section-title em{font-style:italic;color:var(--sage);}
+    .section-desc{font-size:13.5px;color:var(--mid);line-height:1.75;max-width:520px;margin-bottom:44px;}
+    .divider{width:36px;height:1px;background:var(--sage-light);margin-bottom:28px;}
+
+    /* TIER CARDS */
+    .tiers-section{background:var(--white);}
+    .tier-grid{display:grid;gap:20px;}
+    .tier-card{background:var(--cream);display:flex;flex-direction:column;position:relative;}
+    .tier-card.featured{border:1px solid var(--gold);}
+    .tier-badge{position:absolute;top:-1px;right:-1px;background:var(--gold);color:var(--white);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:7px 16px;}
+    .tier-header{padding:32px 28px 24px;border-bottom:1px solid var(--line);}
+    .tier-tag{font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--sage);margin-bottom:10px;}
+    .tier-name{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:300;color:var(--charcoal);margin-bottom:8px;}
+    .tier-sub{font-size:12.5px;color:var(--mid);line-height:1.7;}
+    .tier-body{padding:28px;flex:1;display:flex;flex-direction:column;}
+    .tier-includes{list-style:none;margin-bottom:auto;}
+    .tier-includes li{font-size:13px;color:var(--charcoal);padding:10px 0 10px 20px;border-bottom:1px solid var(--line);position:relative;line-height:1.5;}
+    .tier-includes li:last-child{border-bottom:none;}
+    .tier-includes li::before{content:'✓';position:absolute;left:0;color:var(--sage);font-size:11px;}
+    .tier-price-row{padding-top:24px;margin-top:24px;border-top:1px solid var(--line);}
+    .tier-price{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--charcoal);margin-bottom:4px;}
+    .tier-price span{font-family:'Jost',sans-serif;font-size:11px;color:var(--mid);letter-spacing:0.05em;}
+    .tier-save{font-size:11px;color:var(--sage-deep);margin-bottom:16px;}
+    .tier-free-tag{display:inline-block;background:var(--sage-wash);color:var(--sage-deep);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:6px 12px;margin-bottom:20px;}
+    .btn-sage{display:block;text-align:center;background:var(--sage);color:var(--white);text-decoration:none;padding:14px 24px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
+    .btn-sage:hover{background:var(--sage-deep);}
+    .btn-outline{display:block;text-align:center;border:1px solid var(--sage-light);color:var(--sage-deep);text-decoration:none;padding:13px 24px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:all 0.2s;}
+    .btn-outline:hover{border-color:var(--sage);background:var(--sage-wash);}
+
+    /* HOW IT WORKS */
+    .how-it-works{background:var(--cream-dark);}
+    .steps{display:flex;flex-direction:column;gap:0;margin-top:36px;border-top:1px solid var(--line);}
+    .step{display:flex;gap:20px;padding:24px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+    .step-num{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--sage-light);line-height:1;flex-shrink:0;width:36px;}
+    .step-title{font-size:12px;font-weight:500;letter-spacing:0.15em;text-transform:uppercase;color:var(--charcoal);margin-bottom:6px;}
+    .step-body{font-size:13px;color:var(--mid);line-height:1.7;}
+
+    /* FAQ */
+    .faq{background:var(--white);}
+    .faq-list{margin-top:36px;}
+    .faq-item{border-bottom:1px solid var(--line);}
+    .faq-q{padding:20px 0;font-size:14px;color:var(--charcoal);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;user-select:none;}
+    .faq-q span{font-size:18px;color:var(--sage-light);transition:transform 0.3s;}
+    .faq-item.open .faq-q span{transform:rotate(45deg);}
+    .faq-a{display:none;padding:0 0 20px;font-size:13px;color:var(--mid);line-height:1.75;max-width:560px;}
+    .faq-item.open .faq-a{display:block;}
+
+    /* CTA */
+    .final-cta{background:var(--charcoal);padding:64px 24px;text-align:center;}
+    .final-cta h2{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(28px,5vw,40px);color:var(--white);margin-bottom:12px;line-height:1.2;}
+    .final-cta p{font-size:14px;color:rgba(255,255,255,0.5);max-width:360px;margin:0 auto 32px;line-height:1.7;}
+    .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+    .btn-gold{display:inline-block;background:var(--gold);color:var(--white);text-decoration:none;padding:14px 28px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
+    .btn-gold:hover{background:#b8932a;}
+    .btn-outline-white{display:inline-block;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);text-decoration:none;padding:14px 28px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:border-color 0.2s,color 0.2s;}
+    .btn-outline-white:hover{border-color:white;color:white;}
+
+    footer{background:var(--charcoal);padding:36px 24px;text-align:center;border-top:1px solid rgba(255,255,255,0.06);}
+    .footer-logo{font-family:'Jost',sans-serif;font-weight:200;font-size:14px;letter-spacing:0.4em;color:rgba(255,255,255,0.3);text-transform:uppercase;margin-bottom:4px;}
+    .footer-tagline{font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.15);text-transform:uppercase;}
+    .footer-links{display:flex;gap:20px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+    .footer-links a{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.25);text-decoration:none;}
+    .footer-links a:hover{color:rgba(255,255,255,0.5);}
+
+    @media(min-width:900px){
+      section{padding:96px 48px;}
+      nav{padding:0 48px;}
+      .page-header{padding:120px 48px 72px;}
+      .tier-grid{grid-template-columns:repeat(3,1fr);align-items:stretch;}
+    }
+
+    /* ── MOBILE NAV ── */
+    .hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;}
+    .hamburger span{display:block;width:22px;height:1px;background:var(--sage);transition:all 0.3s ease;}
+    .hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg);}
+    .hamburger.open span:nth-child(2){opacity:0;}
+    .hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);}
+    .mobile-menu{display:none;position:fixed;top:60px;left:0;right:0;bottom:0;background:var(--cream);z-index:99;padding:32px 24px;flex-direction:column;gap:0;overflow-y:auto;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:var(--charcoal);text-decoration:none;padding:18px 0;border-bottom:1px solid var(--line);transition:color 0.2s;}
+    .mobile-menu a:hover{color:var(--sage);}
+    .mobile-menu .mobile-cta{margin-top:24px;background:var(--sage);color:var(--white)!important;padding:16px 24px;text-align:center;border-bottom:none;letter-spacing:0.25em;}
+    .mobile-menu .mobile-cta:hover{background:var(--sage-deep);}
+    @media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}}
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="index.html" class="nav-logo">Aevum</a>
+    <ul class="nav-links">
+      <li><a href="services.html">Services</a></li>
+      <li><a href="shop.html">Shop</a></li>
+      <li><a href="learn.html">Learn</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="login.html">Patient Login</a></li>
+      <li><a href="membership.html" style="color:var(--sage);">Membership</a></li>
+      <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSdtWr6ZZEcsYuFTU3zuGHDP-sGr398GHSTmdLNW8iQ3OUOZAA/viewform?usp=header" class="nav-cta">Free Assessment</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="services.html">Services</a>
+    <a href="shop.html">Shop</a>
+    <a href="learn.html">Learn</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="login.html">Patient Login</a>
+    <a href="membership.html">Membership</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdtWr6ZZEcsYuFTU3zuGHDP-sGr398GHSTmdLNW8iQ3OUOZAA/viewform?usp=header" class="mobile-cta">Free Assessment</a>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const btn  = document.getElementById('hamburger');
+      menu.classList.toggle('open');
+      btn.classList.toggle('open');
+      document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('mobile-menu').classList.remove('open');
+        document.getElementById('hamburger').classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    });
+  </script>
+
+  <div class="page-header">
+    <p class="page-eyebrow">Aevum Protocol · Membership</p>
+    <h1 class="page-title">Start free.<br><em>Go deeper with a doctor.</em></h1>
+    <p class="page-desc">Every patient starts with a free profile to track their own data. When you're ready for a clinician-reviewed plan, real lab tracking, and direct access to your doctor, choose the membership that fits.</p>
+  </div>
+
+  <!-- TIERS -->
+  <section class="tiers-section">
+    <p class="eyebrow">Choose Your Path</p>
+    <h2 class="section-title">Three ways to <em>work with us</em></h2>
+    <div class="divider"></div>
+    <p class="section-desc">All three share the same profile — nothing is lost if you start free and upgrade later.</p>
+
+    <div class="tier-grid">
+
+      <!-- FREE -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <p class="tier-tag">Start Here</p>
+          <h3 class="tier-name">Free Tracking</h3>
+          <p class="tier-sub">Your own longevity profile — always free, no clinician required.</p>
+        </div>
+        <div class="tier-body">
+          <ul class="tier-includes">
+            <li>Your own patient profile & dashboard</li>
+            <li>Log and chart Measurements — weight, blood pressure, sleep, and more</li>
+            <li>Track Body Composition & Fitness results over time</li>
+            <li>Private, secure, yours for as long as you want it</li>
+          </ul>
+          <div class="tier-price-row">
+            <span class="tier-free-tag">Free, always</span>
+            <a href="login.html" class="btn-outline">Create Free Account</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- ONE-TIME -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <p class="tier-tag">One-Time · 3 Months</p>
+          <h3 class="tier-name">Full Access</h3>
+          <p class="tier-sub">One complete 3-month cycle of doctor-led care, start to finish.</p>
+        </div>
+        <div class="tier-body">
+          <ul class="tier-includes">
+            <li>Full portal access for 3 months — Plan, Health Snapshot, Blood Work, Wellbeing & more</li>
+            <li>Initial consultation with your Longevity Doctor</li>
+            <li>Prescriptions issued as clinically appropriate</li>
+            <li>Direct text access to your doctor throughout your 3 months</li>
+          </ul>
+          <div class="tier-price-row">
+            <div class="tier-price">LKR 12,000 <span>/ one-time</span></div>
+            <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20book%20my%20first%20visit%20for%20the%20One-Time%20Membership%20%28LKR%2012%2C000%20/%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Book Your First Visit</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUBSCRIPTION -->
+      <div class="tier-card featured">
+        <div class="tier-badge">Best Value</div>
+        <div class="tier-header">
+          <p class="tier-tag">Subscription · Every 3 Months</p>
+          <h3 class="tier-name">Ongoing Care</h3>
+          <p class="tier-sub">The same full access, renewed automatically — at a lower price each cycle.</p>
+        </div>
+        <div class="tier-body">
+          <ul class="tier-includes">
+            <li>Everything in the one-time membership</li>
+            <li>Automatic renewal every 3 months — no re-booking</li>
+            <li>Continuity of care with the same Longevity Doctor</li>
+            <li>Save LKR 2,000 every cycle compared to paying one-time</li>
+          </ul>
+          <div class="tier-price-row">
+            <div class="tier-price">LKR 10,000 <span>/ every 3 months</span></div>
+            <div class="tier-save">You save LKR 2,000 per cycle vs. one-time</div>
+            <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20start%20the%20Subscription%20Membership%20%28LKR%2010%2C000%20every%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Start Your Membership</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works">
+    <p class="eyebrow">The Process</p>
+    <h2 class="section-title">How membership <em>works</em></h2>
+    <div class="divider"></div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <p class="step-title">Create Your Free Account</p>
+          <p class="step-body">Sign up in minutes and start tracking your own data immediately — no clinician needed to begin.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <p class="step-title">Choose Your Membership</p>
+          <p class="step-body">One-time for a single 3-month cycle, or subscribe for ongoing quarterly care at a lower price.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <p class="step-title">Meet Your Doctor</p>
+          <p class="step-body">Your first consultation covers your full health history, goals, and current measurements.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <p class="step-title">Your Plan Goes Live</p>
+          <p class="step-body">A reviewed Health Snapshot, Goals, and Actions appear in your profile — updated at every visit.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <p class="eyebrow">Questions</p>
+    <h2 class="section-title">Good to <em>know</em></h2>
+    <div class="divider"></div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">What's the actual difference between free and paid?<span>+</span></div>
+        <div class="faq-a">Free gives you your own dashboard to track Measurements and Body Composition on your own. Paid membership adds a real clinician behind your data — a reviewed Health Snapshot, a personalised Goals & Actions plan, blood work tracking, and direct text access to your doctor.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Can I start free and upgrade later?<span>+</span></div>
+        <div class="faq-a">Yes. Your free profile and everything you've already logged carries over automatically — upgrading just unlocks the clinician-led side of your existing profile, nothing is lost or recreated.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">What happens after my first 3 months?<span>+</span></div>
+        <div class="faq-a">On the one-time plan, your full access ends after 3 months unless you renew. On the subscription, it simply continues into your next quarterly cycle automatically — with a follow-up review built in.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">How do I pay?<span>+</span></div>
+        <div class="faq-a">Message us on WhatsApp to book your first visit — payment is arranged directly with our clinic team, by bank transfer or in person. Online payment is on its way.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Can I cancel my subscription?<span>+</span></div>
+        <div class="faq-a">Yes, anytime — just let your clinician know before your next 3-month renewal. Your free profile stays active either way.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <div class="final-cta">
+    <h2>Ready when you are</h2>
+    <p>Start tracking today, or book your first consultation to begin a doctor-led plan.</p>
+    <div class="cta-row">
+      <a href="login.html" class="btn-outline-white">Create Free Account</a>
+      <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20learn%20more%20about%20your%20membership%20plans." class="btn-gold" target="_blank">Book a Consultation</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">Aevum Protocol</div>
+    <div class="footer-tagline">Science for Better Aging</div>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="shop.html">Shop</a>
+      <a href="learn.html">Learn</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="membership.html">Membership</a>
+    </div>
+  </footer>
+
+  <script>
+    function toggleFaq(el) {
+      el.parentElement.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
