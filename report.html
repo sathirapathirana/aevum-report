@@ -575,6 +575,28 @@
       transition: background 0.2s ease;
     }
     .cta-button:hover { background: var(--sage-deep); }
+    .cta-button-row {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .cta-button-outline {
+      display: inline-block;
+      background: transparent;
+      border: 1px solid var(--sage-light);
+      color: var(--sage-deep);
+      text-decoration: none;
+      padding: 13px 32px;
+      font-family: 'Jost', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      border-radius: 1px;
+      transition: all 0.2s ease;
+    }
+    .cta-button-outline:hover { border-color: var(--sage); background: var(--sage-wash); }
 
     .cta-note {
       margin-top: 16px;
@@ -716,7 +738,10 @@
       <div class="cta-body" id="cta-body">
         Your report is the starting point. A consultation with our Longevity Doctors gives you a full clinical assessment, targeted bloodwork, and a Year 1 longevity protocol built around you.
       </div>
-      <a href="#" id="cta-button" class="cta-button" target="_blank">Book Your Consultation</a>
+      <div class="cta-button-row">
+        <a href="#" id="cta-button" class="cta-button" target="_blank">Book Your Consultation</a>
+        <a href="membership.html" class="cta-button-outline">Explore Membership Plans</a>
+      </div>
       <div class="cta-note">Aevum Protocol · aevumprotocol.health</div>
     </div>
 
