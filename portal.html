@@ -187,7 +187,6 @@
       <div class="sub-section active" id="goals-subsection">
         <div class="panel">
           <h2 class="panel-title">Your Goals</h2>
-          <span class="status-pill" id="goals-status-pill"></span>
           <div id="goals-content">Your goals are being prepared — check back shortly.</div>
         </div>
       </div>
@@ -195,7 +194,6 @@
       <div class="sub-section" id="actions-subsection">
         <div class="panel">
           <h2 class="panel-title">Your Actions for the Next 3 Months</h2>
-          <span class="status-pill" id="actions-status-pill"></span>
           <div id="actions-content">Your actions are being prepared — check back shortly.</div>
         </div>
         <div class="panel" id="pdf-panel" style="display:none;">
@@ -722,7 +720,6 @@
     async function loadGoals() {
       const { data } = await supabaseClient.from('goals').select('*').eq('patient_id', currentUser.id).order('updated_at', { ascending: false }).limit(1).maybeSingle();
       currentGoalsData = data;
-      const pill = document.getElementById('goals-status-pill');
       const content = document.getElementById('goals-content');
 
       const hasContent = (data && data.status === 'reviewed') ? renderGoalsArticle(content, data.content, data.primary_objective) : false;
@@ -733,19 +730,12 @@
         empty.className = 'plan-empty-state';
         empty.textContent = 'Your goals are being prepared — check back shortly.';
         content.appendChild(empty);
-        pill.style.display = 'none';
-        return;
       }
-
-      pill.style.display = 'inline-block';
-      pill.textContent = 'Reviewed by your clinician';
-      pill.className = 'status-pill reviewed';
     }
 
     async function loadActions() {
       const { data } = await supabaseClient.from('actions').select('*').eq('patient_id', currentUser.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
       currentActionsData = data;
-      const pill = document.getElementById('actions-status-pill');
       const content = document.getElementById('actions-content');
       const pdfPanel = document.getElementById('pdf-panel');
 
@@ -757,15 +747,11 @@
         empty.className = 'plan-empty-state';
         empty.textContent = 'Your actions are being prepared — check back shortly.';
         content.appendChild(empty);
-        pill.style.display = 'none';
         pdfPanel.style.display = 'none';
         return;
       }
 
       pdfPanel.style.display = 'block';
-      pill.style.display = 'inline-block';
-      pill.textContent = 'Reviewed by your clinician';
-      pill.className = 'status-pill reviewed';
     }
 
     document.getElementById('download-pdf-btn').addEventListener('click', () => {
