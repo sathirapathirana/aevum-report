@@ -21,6 +21,8 @@
     .nav-links a:hover{color:var(--sage);}
     .nav-cta{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;background:var(--sage);color:var(--white)!important;padding:8px 18px;text-decoration:none;transition:background 0.2s;}
     .nav-cta:hover{background:var(--sage-deep)!important;}
+    .nav-cta-outline{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;background:transparent;border:1px solid var(--sage);color:var(--sage)!important;padding:7px 17px;text-decoration:none;transition:all 0.2s;}
+    .nav-cta-outline:hover{background:var(--sage-wash);}
     .page-header{padding:120px 24px 64px;background:var(--sage);}
     .page-eyebrow{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:14px;}
     .page-title{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:clamp(40px,8vw,64px);color:var(--white);line-height:1.05;margin-bottom:16px;}
@@ -35,7 +37,8 @@
 
     /* TIER CARDS */
     .tiers-section{background:var(--white);}
-    .tier-grid{display:grid;gap:20px;}
+    .tier-grid{display:grid;gap:20px;grid-template-columns:1fr;}
+    @media(min-width:640px){.tier-grid{grid-template-columns:1fr 1fr;}}
     .tier-card{background:var(--cream);display:flex;flex-direction:column;position:relative;}
     .tier-card.featured{border:1px solid var(--gold);}
     .tier-badge{position:absolute;top:-1px;right:-1px;background:var(--gold);color:var(--white);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:7px 16px;}
@@ -52,6 +55,7 @@
     .tier-price{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--charcoal);margin-bottom:4px;}
     .tier-price span{font-family:'Jost',sans-serif;font-size:11px;color:var(--mid);letter-spacing:0.05em;}
     .tier-save{font-size:11px;color:var(--sage-deep);margin-bottom:16px;}
+    .tier-note{font-size:11px;color:var(--mid);margin-bottom:16px;line-height:1.5;}
     .tier-free-tag{display:inline-block;background:var(--sage-wash);color:var(--sage-deep);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:6px 12px;margin-bottom:20px;}
     .btn-sage{display:block;text-align:center;background:var(--sage);color:var(--white);text-decoration:none;padding:14px 24px;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;transition:background 0.2s;}
     .btn-sage:hover{background:var(--sage-deep);}
@@ -97,7 +101,9 @@
       section{padding:96px 48px;}
       nav{padding:0 48px;}
       .page-header{padding:120px 48px 72px;}
-      .tier-grid{grid-template-columns:repeat(3,1fr);align-items:stretch;}
+    }
+    @media(min-width:1200px){
+      .tier-grid{grid-template-columns:repeat(4,1fr);align-items:stretch;max-width:1400px;margin:0 auto;}
     }
 
     /* ── MOBILE NAV ── */
@@ -112,6 +118,8 @@
     .mobile-menu a:hover{color:var(--sage);}
     .mobile-menu .mobile-cta{margin-top:24px;background:var(--sage);color:var(--white)!important;padding:16px 24px;text-align:center;border-bottom:none;letter-spacing:0.25em;}
     .mobile-menu .mobile-cta:hover{background:var(--sage-deep);}
+    .mobile-menu .mobile-cta-outline{margin-top:12px;background:transparent;border:1px solid var(--sage);color:var(--sage)!important;padding:14px 24px;text-align:center;letter-spacing:0.25em;}
+    .mobile-menu .mobile-cta-outline:hover{background:var(--sage-wash);}
     @media(max-width:768px){.nav-links{display:none;}.hamburger{display:flex;}}
   </style>
 </head>
@@ -126,7 +134,7 @@
       <li><a href="about.html">About</a></li>
       <li><a href="contact.html">Contact</a></li>
       <li><a href="login.html">Patient Login</a></li>
-      <li><a href="membership.html" style="color:var(--sage);">Membership</a></li>
+      <li><a href="membership.html" class="nav-cta-outline">Membership</a></li>
       <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSdtWr6ZZEcsYuFTU3zuGHDP-sGr398GHSTmdLNW8iQ3OUOZAA/viewform?usp=header" class="nav-cta">Free Assessment</a></li>
     </ul>
     <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
@@ -142,7 +150,7 @@
     <a href="about.html">About</a>
     <a href="contact.html">Contact</a>
     <a href="login.html">Patient Login</a>
-    <a href="membership.html">Membership</a>
+    <a href="membership.html" class="mobile-cta-outline">Membership</a>
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSdtWr6ZZEcsYuFTU3zuGHDP-sGr398GHSTmdLNW8iQ3OUOZAA/viewform?usp=header" class="mobile-cta">Free Assessment</a>
   </div>
 
@@ -172,9 +180,9 @@
   <!-- TIERS -->
   <section class="tiers-section">
     <p class="eyebrow">Choose Your Path</p>
-    <h2 class="section-title">Three ways to <em>work with us</em></h2>
+    <h2 class="section-title">Four ways to <em>work with us</em></h2>
     <div class="divider"></div>
-    <p class="section-desc">All three share the same profile — nothing is lost if you start free and upgrade later.</p>
+    <p class="section-desc">All four share the same profile — nothing is lost if you start free and upgrade later.</p>
 
     <div class="tier-grid">
 
@@ -199,28 +207,50 @@
         </div>
       </div>
 
-      <!-- ONE-TIME -->
+      <!-- COMMUNITY -->
       <div class="tier-card">
         <div class="tier-header">
-          <p class="tier-tag">One-Time · 3 Months</p>
+          <p class="tier-tag">Community · Quarterly</p>
+          <h3 class="tier-name">Community Membership</h3>
+          <p class="tier-sub">Join the Aevum community — content, conversation, and savings, no clinical commitment.</p>
+        </div>
+        <div class="tier-body">
+          <ul class="tier-includes">
+            <li>Access to the Aevum WhatsApp community — ask questions anytime</li>
+            <li>Membership-only content from the Aevum Library (Learn)</li>
+            <li>5% discount on all Aevum skin care packs</li>
+          </ul>
+          <div class="tier-price-row">
+            <div class="tier-price">LKR 3,000 <span>/ quarterly</span></div>
+            <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20join%20the%20Community%20Membership%20%28LKR%203%2C000%20quarterly%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Join the Community</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- STARTER -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <p class="tier-tag">First Cycle · 3 Months</p>
           <h3 class="tier-name">Starter Membership</h3>
-          <p class="tier-sub">One complete 3-month cycle of doctor-led care, start to finish.</p>
+          <p class="tier-sub">Your first complete 3-month cycle of doctor-led care.</p>
         </div>
         <div class="tier-body">
           <ul class="tier-includes">
             <li>Full portal access for 3 months — Plan, Health Snapshot, Blood Work, Wellbeing & more</li>
             <li>Initial consultation with your Longevity Doctor</li>
-            <li>Prescriptions issued as clinically appropriate</li>
+            <li>Blood work ordered and interpreted, with medications and supplements prescribed based on your results</li>
             <li>Direct text access to your doctor throughout your 3 months</li>
+            <li>Everything in Community Membership — WhatsApp community, Library content, 5% skin pack discount</li>
           </ul>
           <div class="tier-price-row">
-            <div class="tier-price">LKR 12,000 <span>/ one-time</span></div>
+            <div class="tier-price">LKR 4,000 <span>/ month</span></div>
+            <div class="tier-note">(LKR 12,000 billed as one payment for your 3-month cycle)</div>
             <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20book%20my%20first%20visit%20for%20the%20Starter%20Membership%20%28LKR%2012%2C000%20/%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Book Your First Visit</a>
           </div>
         </div>
       </div>
 
-      <!-- SUBSCRIPTION -->
+      <!-- LONGEVITY -->
       <div class="tier-card featured">
         <div class="tier-badge">Best Value</div>
         <div class="tier-header">
@@ -230,14 +260,13 @@
         </div>
         <div class="tier-body">
           <ul class="tier-includes">
-            <li>Everything in the one-time membership</li>
+            <li>Everything in Starter Membership</li>
             <li>Automatic renewal every 3 months — no re-booking</li>
             <li>Continuity of care with the same Longevity Doctor</li>
-            <li>Save LKR 2,000 every cycle compared to paying one-time</li>
           </ul>
           <div class="tier-price-row">
             <div class="tier-price">LKR 10,000 <span>/ every 3 months</span></div>
-            <div class="tier-save">You save LKR 2,000 per cycle vs. one-time</div>
+            <div class="tier-save">You save LKR 2,000 per cycle</div>
             <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20start%20the%20Longevity%20Membership%20%28LKR%2010%2C000%20every%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Start Your Membership</a>
           </div>
         </div>
@@ -290,12 +319,18 @@
     <div class="divider"></div>
     <div class="faq-list">
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">What's the actual difference between free and paid?<span>+</span></div>
-        <div class="faq-a">Free gives you your own dashboard to track Measurements and Body Composition on your own. Paid membership adds a real clinician behind your data — a reviewed Health Snapshot, a personalised Goals & Actions plan, blood work tracking, and direct text access to your doctor.</div>
+        <div class="faq-q" onclick="toggleFaq(this)">What's the actual difference between the tiers?<span>+</span></div>
+        <div class="faq-a">Free gives you your own dashboard to track Measurements and Body Composition on your own. Community Membership adds our WhatsApp community, member-only Library content, and a skin pack discount — still no clinical involvement. Starter and Longevity Membership are where a real clinician gets involved: a reviewed Health Snapshot, a personalised Goals & Actions plan, blood work interpretation and prescribing, and direct text access to your doctor.</div>
       </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">Does Community Membership include a doctor?<span>+</span></div>
+        <div class="faq-a">No — Community Membership is our lightest tier, built for connection and content, not clinical care. If you want a clinician actively involved in your health data, Starter or Longevity Membership are the right fit.</div>
+      </div>
+
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">Can I start free and upgrade later?<span>+</span></div>
-        <div class="faq-a">Yes. Your free profile and everything you've already logged carries over automatically — upgrading just unlocks the clinician-led side of your existing profile, nothing is lost or recreated.</div>
+        <div class="faq-a">Yes. Your free profile and everything you've already logged carries over automatically — upgrading just unlocks the tier you choose on top of your existing profile, nothing is lost or recreated.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">What happens after my first 3 months?<span>+</span></div>
@@ -306,8 +341,8 @@
         <div class="faq-a">Message us on WhatsApp to book your first visit — payment is arranged directly with our clinic team, by bank transfer or in person. Online payment is on its way.</div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">Can I cancel my subscription?<span>+</span></div>
-        <div class="faq-a">Yes, anytime — just let your clinician know before your next 3-month renewal. Your free profile stays active either way.</div>
+        <div class="faq-q" onclick="toggleFaq(this)">Can I cancel my membership?<span>+</span></div>
+        <div class="faq-a">Yes, anytime — for either Community or Longevity Membership, just let us know before your next renewal. Your free profile stays active either way.</div>
       </div>
     </div>
   </section>
@@ -332,7 +367,6 @@
       <a href="learn.html">Learn</a>
       <a href="about.html">About</a>
       <a href="contact.html">Contact</a>
-      <a href="membership.html">Membership</a>
     </div>
   </footer>
 
