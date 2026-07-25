@@ -56,6 +56,14 @@
     .empty-detail{color:var(--mid);font-size:13px;text-align:center;padding:80px 20px;}
 
     .field-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 16px;}
+    @media(min-width:700px){.grid-4{grid-template-columns:repeat(5,1fr);}}
+    input[type="number"]{width:100%;padding:11px 13px;border:1px solid var(--line);background:var(--cream);font-family:'Jost',sans-serif;font-size:13px;color:var(--charcoal);margin-bottom:14px;}
+    input[type="number"]:focus{outline:none;border-color:var(--sage);}
+    .visit-info{display:flex;gap:32px;flex-wrap:wrap;}
+    .visit-stat-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+    .visit-stat-value{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--charcoal);}
+    .bioage-hero-delta-badge{display:inline-block;margin-top:8px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;}
     .note-item{padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;}
     .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
     .tab-btn{background:var(--cream);border:1px solid var(--line);color:var(--mid);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 13px;cursor:pointer;transition:all 0.2s;}
@@ -471,14 +479,17 @@
     let clBwChart = null;
     let clBodyCompChart = null;
     let clWellbeingChart = null;
+    let clBioAgeChart = null;
     let clMeasurementsData = [];
     let clBloodWorkData = [];
     let clBodyCompData = [];
     let clWellbeingData = [];
+    let clBioAgeData = [];
     let clActiveMetric = 'weight_kg';
     let clActiveBwTest = null;
     let clActiveBodyCompTest = null;
     let clActiveWellbeingMetric = 'stress_level';
+    let clBioAgeEditingId = null;
 
     const WELLBEING_LABELS = {
       stress_level: 'Stress Level', mood: 'Mood', focus: 'Focus',
@@ -671,6 +682,46 @@
           <div class="tabs" id="cl-bodycomp-tabs" style="margin-top:20px;"></div>
           <div class="chart-wrap"><canvas id="cl-bodycomp-chart"></canvas></div>
           <p class="empty-detail" id="cl-bodycomp-empty" style="display:none;padding:30px 0;">No body composition data logged yet.</p>
+        </div>
+
+        <div class="panel" style="margin-top:20px;">
+          <h2 class="panel-title">Biological Age</h2>
+          <p style="font-size:11px;color:var(--mid);margin-bottom:14px;">Levine 2018 (PhenoAge). All nine values are required from the same blood draw — age is calculated from the patient's date of birth at the draw date, not today.</p>
+          <div id="cl-bioage-hero" style="display:none;margin-bottom:18px;">
+            <div class="visit-info" style="margin-bottom:0;">
+              <div class="visit-stat">
+                <div class="visit-stat-label">Chronological Age</div>
+                <div class="visit-stat-value" id="cl-bioage-chrono-value">—</div>
+              </div>
+              <div class="visit-stat">
+                <div class="visit-stat-label">Biological Age</div>
+                <div class="visit-stat-value" id="cl-bioage-bio-value">—</div>
+                <span class="bioage-hero-delta-badge" id="cl-bioage-delta-badge"></span>
+              </div>
+            </div>
+          </div>
+          <div id="cl-bioage-nodob-msg" class="msg error" style="display:none;">This patient has no date of birth on file. Ask them to add it under Account before you can log a lab panel for them.</div>
+          <form id="cl-bioage-form" class="grid-4">
+            <div><label>Albumin (g/dL)</label><input type="number" id="cl-bioage-albumin" step="0.01" required /></div>
+            <div><label>Creatinine (mg/dL)</label><input type="number" id="cl-bioage-creatinine" step="0.01" required /></div>
+            <div><label>Fasting Glucose (mg/dL)</label><input type="number" id="cl-bioage-glucose" step="0.1" required /></div>
+            <div><label>CRP (mg/L)</label><input type="number" id="cl-bioage-crp" step="0.01" min="0.01" required /></div>
+            <div><label>Lymphocyte %</label><input type="number" id="cl-bioage-lymphocyte" step="0.1" required /></div>
+            <div><label>MCV (fL)</label><input type="number" id="cl-bioage-mcv" step="0.1" required /></div>
+            <div><label>RDW (%)</label><input type="number" id="cl-bioage-rdw" step="0.1" required /></div>
+            <div><label>ALP (U/L)</label><input type="number" id="cl-bioage-alp" step="0.1" required /></div>
+            <div><label>WBC (10⁹/L)</label><input type="number" id="cl-bioage-wbc" step="0.1" required /></div>
+            <div><label>Test Date</label><input type="date" id="cl-bioage-date" required /></div>
+          </form>
+          <button class="btn-sage" id="cl-bioage-save-btn" style="margin-top:0;">Add Panel</button>
+          <button class="btn-quiet" id="cl-bioage-cancel-edit-btn" type="button" style="margin-top:0;display:none;">Cancel Edit</button>
+          <div class="msg" id="cl-bioage-msg"></div>
+          <div class="chart-wrap" style="margin-top:20px;"><canvas id="cl-bioage-chart"></canvas></div>
+          <p class="empty-detail" id="cl-bioage-empty" style="display:none;padding:30px 0;">No lab panels logged yet.</p>
+          <table class="data-table" id="cl-bioage-table" style="margin-top:16px;display:none;">
+            <thead><tr><th>Date</th><th>Bio Age</th><th>Chrono Age</th><th>Delta</th><th></th></tr></thead>
+            <tbody id="cl-bioage-tbody"></tbody>
+          </table>
         </div>
 
         <div class="panel" style="margin-top:20px;">
@@ -950,6 +1001,7 @@
       renderClinicianMeasurements(id);
       renderClinicianBloodWork(id);
       renderClinicianBodyComposition(id);
+      renderClinicianBioAge(id, patient.date_of_birth);
       renderClinicianWellbeing(id);
       renderClinicianMedications(id);
     }
@@ -1189,6 +1241,143 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+    }
+
+    async function renderClinicianBioAge(patientId, patientDob) {
+      const nodobMsg = document.getElementById('cl-bioage-nodob-msg');
+      const form = document.getElementById('cl-bioage-form');
+      const saveBtn = document.getElementById('cl-bioage-save-btn');
+      document.getElementById('cl-bioage-date').valueAsDate = new Date();
+
+      // DOB gate (Option 1, same as the patient portal): clinicians can't
+      // log a panel for a patient with no date of birth on file. There's
+      // currently no clinician-side field to add DOB themselves — only the
+      // patient can add it under their own Account — so this blocks with
+      // a message pointing that out, rather than silently failing at save.
+      if (!patientDob) {
+        nodobMsg.style.display = 'block';
+        form.querySelectorAll('input').forEach(i => i.disabled = true);
+        saveBtn.disabled = true;
+      } else {
+        nodobMsg.style.display = 'none';
+        form.querySelectorAll('input').forEach(i => i.disabled = false);
+        saveBtn.disabled = false;
+      }
+
+      saveBtn.onclick = async () => {
+        const msg = document.getElementById('cl-bioage-msg');
+        const payload = {
+          albumin: parseFloat(document.getElementById('cl-bioage-albumin').value),
+          creatinine: parseFloat(document.getElementById('cl-bioage-creatinine').value),
+          glucose: parseFloat(document.getElementById('cl-bioage-glucose').value),
+          crp: parseFloat(document.getElementById('cl-bioage-crp').value),
+          lymphocyte_pct: parseFloat(document.getElementById('cl-bioage-lymphocyte').value),
+          mcv: parseFloat(document.getElementById('cl-bioage-mcv').value),
+          rdw: parseFloat(document.getElementById('cl-bioage-rdw').value),
+          alp: parseFloat(document.getElementById('cl-bioage-alp').value),
+          wbc: parseFloat(document.getElementById('cl-bioage-wbc').value),
+          test_date: document.getElementById('cl-bioage-date').value,
+        };
+        if (Object.values(payload).some(v => v === '' || (typeof v === 'number' && isNaN(v)))) return;
+
+        saveBtn.disabled = true; saveBtn.textContent = clBioAgeEditingId ? 'Updating…' : 'Calculating…';
+        let error;
+        if (clBioAgeEditingId) {
+          ({ error } = await supabaseClient.from('phenoage_panels').update(payload).eq('id', clBioAgeEditingId));
+        } else {
+          ({ error } = await supabaseClient.from('phenoage_panels').insert({ ...payload, patient_id: patientId }));
+        }
+        saveBtn.disabled = false;
+        msg.className = 'msg show ' + (error ? 'error' : 'success');
+        msg.textContent = error ? error.message : (clBioAgeEditingId ? 'Panel updated.' : 'Panel added — biological age calculated.');
+        if (!error) {
+          resetClBioAgeForm();
+          renderClinicianBioAge(patientId, patientDob);
+        }
+      };
+
+      document.getElementById('cl-bioage-cancel-edit-btn').onclick = () => resetClBioAgeForm();
+
+      function resetClBioAgeForm() {
+        clBioAgeEditingId = null;
+        document.getElementById('cl-bioage-form').reset();
+        document.getElementById('cl-bioage-date').valueAsDate = new Date();
+        document.getElementById('cl-bioage-save-btn').textContent = 'Add Panel';
+        document.getElementById('cl-bioage-cancel-edit-btn').style.display = 'none';
+      }
+
+      const { data } = await supabaseClient.from('phenoage_panels').select('*').eq('patient_id', patientId).order('test_date', { ascending: true });
+      clBioAgeData = data || [];
+
+      const heroWrap = document.getElementById('cl-bioage-hero');
+      const canvas = document.getElementById('cl-bioage-chart');
+      const empty = document.getElementById('cl-bioage-empty');
+      const table = document.getElementById('cl-bioage-table');
+
+      if (clBioAgeData.length === 0) {
+        heroWrap.style.display = 'none';
+        empty.style.display = 'block'; canvas.style.display = 'none'; table.style.display = 'none';
+        if (clBioAgeChart) { clBioAgeChart.destroy(); clBioAgeChart = null; }
+        return;
+      }
+      empty.style.display = 'none'; canvas.style.display = 'block'; table.style.display = 'table';
+
+      const latest = clBioAgeData[clBioAgeData.length - 1];
+      heroWrap.style.display = 'block';
+      document.getElementById('cl-bioage-chrono-value').textContent = latest.age_at_draw != null ? Math.round(latest.age_at_draw) : '—';
+      document.getElementById('cl-bioage-bio-value').textContent = latest.phenoage != null ? latest.phenoage.toFixed(1) : '—';
+      const badge = document.getElementById('cl-bioage-delta-badge');
+      const d = latest.phenoage_delta;
+      if (d != null) {
+        if (d < -0.5) { badge.textContent = `${Math.abs(d).toFixed(1)} years younger`; badge.style.background = 'var(--good-bg)'; badge.style.color = 'var(--sage-deep)'; }
+        else if (d > 0.5) { badge.textContent = `${d.toFixed(1)} years older`; badge.style.background = 'var(--attention-bg)'; badge.style.color = 'var(--attention)'; }
+        else { badge.textContent = 'In line with age'; badge.style.background = 'var(--cream-dark)'; badge.style.color = 'var(--mid)'; }
+      }
+
+      if (clBioAgeChart) clBioAgeChart.destroy();
+      clBioAgeChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: clBioAgeData.map(p => p.test_date),
+          datasets: [
+            { label: 'Biological Age', data: clBioAgeData.map(p => p.phenoage), borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3 },
+            { label: 'Chronological Age', data: clBioAgeData.map(p => p.age_at_draw), borderColor: '#C9A84C', borderDash: [4, 4], tension: 0, pointRadius: 2, fill: false },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { font: { size: 10 } } } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+
+      const tbody = document.getElementById('cl-bioage-tbody');
+      tbody.innerHTML = '';
+      [...clBioAgeData].reverse().forEach(p => {
+        const tr = document.createElement('tr');
+        const dateStr = new Date(p.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        const deltaStr = p.phenoage_delta != null ? (p.phenoage_delta > 0 ? '+' : '') + p.phenoage_delta.toFixed(1) : '—';
+        tr.innerHTML = `<td>${dateStr}</td><td>${p.phenoage != null ? p.phenoage.toFixed(1) : '—'}</td><td>${p.age_at_draw != null ? p.age_at_draw.toFixed(1) : '—'}</td><td>${deltaStr}</td><td style="text-align:right;"><button class="btn-tiny" type="button" data-action="edit" data-id="${p.id}">Edit</button> <button class="btn-tiny" type="button" data-action="delete" data-id="${p.id}">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(b => b.addEventListener('click', async () => {
+        await supabaseClient.from('phenoage_panels').delete().eq('id', b.dataset.id);
+        renderClinicianBioAge(patientId, patientDob);
+      }));
+      tbody.querySelectorAll('button[data-action="edit"]').forEach(b => b.addEventListener('click', () => {
+        const entry = clBioAgeData.find(p => p.id === b.dataset.id);
+        clBioAgeEditingId = entry.id;
+        document.getElementById('cl-bioage-albumin').value = entry.albumin;
+        document.getElementById('cl-bioage-creatinine').value = entry.creatinine;
+        document.getElementById('cl-bioage-glucose').value = entry.glucose;
+        document.getElementById('cl-bioage-crp').value = entry.crp;
+        document.getElementById('cl-bioage-lymphocyte').value = entry.lymphocyte_pct;
+        document.getElementById('cl-bioage-mcv').value = entry.mcv;
+        document.getElementById('cl-bioage-rdw').value = entry.rdw;
+        document.getElementById('cl-bioage-alp').value = entry.alp;
+        document.getElementById('cl-bioage-wbc').value = entry.wbc;
+        document.getElementById('cl-bioage-date').value = entry.test_date;
+        document.getElementById('cl-bioage-save-btn').textContent = 'Update Panel';
+        document.getElementById('cl-bioage-cancel-edit-btn').style.display = 'inline-block';
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }));
     }
 
     async function renderClinicianWellbeing(patientId) {

@@ -91,6 +91,27 @@
     .visit-stat-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
     .visit-stat-value{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--charcoal);}
 
+    /* ── Persistent Biological Age banner (paid tier, above tab-nav) ── */
+    .bioage-banner{max-width:1040px;margin:0 auto 16px;padding:0 24px;}
+    .bioage-banner-inner{background:var(--white);border:1px solid var(--line);border-left:3px solid var(--sage);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:14px;cursor:pointer;transition:border-color 0.2s,background 0.2s;}
+    .bioage-banner-inner:hover{background:var(--sage-wash);}
+    .bioage-banner-text{font-size:13px;color:var(--charcoal);line-height:1.5;}
+    .bioage-banner-title{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--charcoal);}
+    .bioage-banner-sub{font-size:11.5px;color:var(--mid);margin-top:2px;}
+    .bioage-banner-delta{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;white-space:nowrap;}
+    .bioage-banner-delta.younger{background:var(--good-bg);color:var(--sage-deep);}
+    .bioage-banner-delta.older{background:var(--attention-bg);color:var(--attention);}
+    .bioage-banner-delta.same{background:var(--cream-dark);color:var(--mid);}
+    .bioage-banner-arrow{color:var(--sage);font-size:14px;}
+
+    /* ── Biological Age tab ── */
+    .bioage-hero{display:flex;gap:40px;flex-wrap:wrap;margin-bottom:4px;}
+    .bioage-hero-stat-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);margin-bottom:8px;}
+    .bioage-hero-stat-value{font-family:'Cormorant Garamond',serif;font-size:40px;color:var(--charcoal);line-height:1;}
+    .bioage-hero-delta-badge{display:inline-block;margin-top:10px;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;padding:5px 12px;}
+    .grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 24px;}
+    @media(min-width:700px){.grid-4{grid-template-columns:repeat(5,1fr);}}
+
     .note-item{padding:16px 0;border-bottom:1px solid var(--line);}
     .note-item:last-child{border-bottom:none;}
     .note-date{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:6px;}
@@ -161,12 +182,24 @@
     </div>
   </div>
 
+  <div class="bioage-banner" id="bioage-banner-wrap" style="display:none;">
+    <div class="bioage-banner-inner" id="bioage-banner">
+      <div class="bioage-banner-text">
+        <div class="bioage-banner-title" id="bioage-banner-title">Get Your Biological Age</div>
+        <div class="bioage-banner-sub" id="bioage-banner-sub">Log your first blood panel to find out</div>
+      </div>
+      <span class="bioage-banner-delta" id="bioage-banner-delta" style="display:none;"></span>
+      <span class="bioage-banner-arrow">→</span>
+    </div>
+  </div>
+
   <div class="tab-nav" id="tab-nav">
     <button class="page-tab active" data-section="plan-section" id="plan-tab">Plan</button>
     <button class="page-tab" data-section="snapshot-section" id="snapshot-tab" style="display:none;">Health Snapshot</button>
     <button class="page-tab" data-section="measurements-section">Measurements</button>
     <button class="page-tab" data-section="bloodwork-section" id="bw-tab" style="display:none;">Blood Work</button>
     <button class="page-tab" data-section="bodycomp-section" id="bodycomp-tab" style="display:none;">Body Composition</button>
+    <button class="page-tab" data-section="bioage-section" id="bioage-tab" style="display:none;">Biological Age</button>
     <button class="page-tab" data-section="wellbeing-section" id="wellbeing-tab" style="display:none;">Wellbeing</button>
     <button class="page-tab" data-section="meds-section" id="meds-tab" style="display:none;">Medications</button>
     <button class="page-tab" data-section="account-section">Account</button>
@@ -343,6 +376,59 @@
             <tbody id="bodycomp-tbody"></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <!-- ── BIOLOGICAL AGE (paid) ── -->
+    <section class="section" id="bioage-section">
+      <div class="panel" id="bioage-hero-panel" style="display:none;">
+        <div class="bioage-hero">
+          <div>
+            <div class="bioage-hero-stat-label">Chronological Age</div>
+            <div class="bioage-hero-stat-value" id="bioage-chrono-value">—</div>
+          </div>
+          <div>
+            <div class="bioage-hero-stat-label">Biological Age</div>
+            <div class="bioage-hero-stat-value" id="bioage-bio-value">—</div>
+            <span class="bioage-hero-delta-badge" id="bioage-delta-badge"></span>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--mid);margin-top:16px;line-height:1.6;">Based on your most recent complete lab panel, dated <span id="bioage-latest-date">—</span>. Calculated using the Levine 2018 PhenoAge method.</p>
+      </div>
+
+      <div class="panel" id="bioage-empty-panel">
+        <p class="empty-state">Log your first lab panel below to see your biological age.</p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title" id="bioage-form-title">Add Lab Panel</h2>
+        <p class="panel-sub">All nine values are needed from the same blood draw to calculate your biological age. Enter them together from one lab report.</p>
+        <form id="bioage-form">
+          <div class="grid-4">
+            <div><label for="bioage-albumin">Albumin (g/dL)</label><input type="number" id="bioage-albumin" step="0.01" required placeholder="e.g. 4.3" /></div>
+            <div><label for="bioage-creatinine">Creatinine (mg/dL)</label><input type="number" id="bioage-creatinine" step="0.01" required placeholder="e.g. 0.9" /></div>
+            <div><label for="bioage-glucose">Fasting Glucose (mg/dL)</label><input type="number" id="bioage-glucose" step="0.1" required placeholder="e.g. 88" /></div>
+            <div><label for="bioage-crp">CRP (mg/L)</label><input type="number" id="bioage-crp" step="0.01" min="0.01" required placeholder="e.g. 0.6" /></div>
+            <div><label for="bioage-lymphocyte">Lymphocyte %</label><input type="number" id="bioage-lymphocyte" step="0.1" required placeholder="e.g. 32" /></div>
+            <div><label for="bioage-mcv">MCV (fL)</label><input type="number" id="bioage-mcv" step="0.1" required placeholder="e.g. 90" /></div>
+            <div><label for="bioage-rdw">RDW (%)</label><input type="number" id="bioage-rdw" step="0.1" required placeholder="e.g. 13" /></div>
+            <div><label for="bioage-alp">Alkaline Phosphatase (U/L)</label><input type="number" id="bioage-alp" step="0.1" required placeholder="e.g. 70" /></div>
+            <div><label for="bioage-wbc">WBC (10⁹/L)</label><input type="number" id="bioage-wbc" step="0.1" required placeholder="e.g. 6.0" /></div>
+            <div><label for="bioage-date">Test Date</label><input type="date" id="bioage-date" required /></div>
+          </div>
+          <button type="submit" class="btn-sage" id="bioage-save-btn" style="width:100%;margin-top:6px;">Add Panel</button>
+          <button type="button" class="btn-quiet" id="bioage-cancel-edit-btn" style="width:100%;margin-top:10px;display:none;">Cancel Edit</button>
+        </form>
+        <div class="msg" id="bioage-msg"></div>
+      </div>
+
+      <div class="panel" id="bioage-history-panel" style="display:none;">
+        <h2 class="panel-title">Your Trend</h2>
+        <div class="chart-wrap"><canvas id="bioage-chart"></canvas></div>
+        <table class="data-table" id="bioage-table" style="margin-top:20px;">
+          <thead><tr><th>Test Date</th><th>Biological Age</th><th>Chronological Age</th><th>Delta</th><th></th></tr></thead>
+          <tbody id="bioage-tbody"></tbody>
+        </table>
       </div>
     </section>
 
@@ -631,6 +717,9 @@
     let profile = null;
     let chart = null;
     let bwChart = null;
+    let bioAgeChart = null;
+    let allBioAgePanels = [];
+    let bioAgeEditingId = null;
     let activeMetric = 'weight_kg';
 
     // ── Tab switching ──
@@ -686,6 +775,8 @@
       if (profile.subscription_tier === 'paid') {
         document.getElementById('bw-tab').style.display = 'inline-block';
         document.getElementById('bodycomp-tab').style.display = 'inline-block';
+        document.getElementById('bioage-tab').style.display = 'inline-block';
+        document.getElementById('bioage-banner-wrap').style.display = 'block';
         document.getElementById('wellbeing-tab').style.display = 'inline-block';
         document.getElementById('meds-tab').style.display = 'inline-block';
         document.getElementById('snapshot-tab').style.display = 'inline-block';
@@ -694,9 +785,11 @@
           document.getElementById('next-visit-value').textContent =
             new Date(profile.next_visit_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
         }
+        document.getElementById('bioage-date').valueAsDate = new Date();
         loadNotes();
         loadBloodWork();
         loadBodyComposition();
+        loadBioAge();
         loadWellbeing();
         loadMedications();
         loadSnapshot();
@@ -1199,6 +1292,183 @@
       }
     });
 
+
+    // ── Biological Age (Levine 2018 / PhenoAge) ──
+    // All calculation happens in the phenoage_panels trigger (Postgres,
+    // deterministic) — this code only reads the already-computed
+    // age_at_draw / phenoage / phenoage_delta fields and renders them.
+    async function loadBioAge() {
+      const { data } = await supabaseClient.from('phenoage_panels').select('*').eq('patient_id', currentUser.id).order('test_date', { ascending: true });
+      allBioAgePanels = data || [];
+      renderBioAge();
+    }
+
+    function renderBioAge() {
+      const heroPanel = document.getElementById('bioage-hero-panel');
+      const emptyPanel = document.getElementById('bioage-empty-panel');
+      const historyPanel = document.getElementById('bioage-history-panel');
+
+      if (allBioAgePanels.length === 0) {
+        heroPanel.style.display = 'none';
+        emptyPanel.style.display = 'block';
+        historyPanel.style.display = 'none';
+        updateBioAgeBanner(null);
+        return;
+      }
+      emptyPanel.style.display = 'none';
+      heroPanel.style.display = 'block';
+      historyPanel.style.display = 'block';
+
+      const latest = allBioAgePanels[allBioAgePanels.length - 1];
+      document.getElementById('bioage-chrono-value').textContent = latest.age_at_draw != null ? Math.round(latest.age_at_draw) : '—';
+      document.getElementById('bioage-bio-value').textContent = latest.phenoage != null ? latest.phenoage.toFixed(1) : '—';
+      document.getElementById('bioage-latest-date').textContent =
+        new Date(latest.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+
+      const badge = document.getElementById('bioage-delta-badge');
+      const delta = latest.phenoage_delta;
+      if (delta != null) {
+        if (delta < -0.5) { badge.textContent = `${Math.abs(delta).toFixed(1)} years younger`; badge.style.background = 'var(--good-bg)'; badge.style.color = 'var(--sage-deep)'; }
+        else if (delta > 0.5) { badge.textContent = `${delta.toFixed(1)} years older`; badge.style.background = 'var(--attention-bg)'; badge.style.color = 'var(--attention)'; }
+        else { badge.textContent = 'In line with your age'; badge.style.background = 'var(--cream-dark)'; badge.style.color = 'var(--mid)'; }
+      }
+
+      const canvas = document.getElementById('bioage-chart');
+      if (bioAgeChart) bioAgeChart.destroy();
+      bioAgeChart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: allBioAgePanels.map(p => p.test_date),
+          datasets: [
+            { label: 'Biological Age', data: allBioAgePanels.map(p => p.phenoage), borderColor: '#8B9068', backgroundColor: 'rgba(139,144,104,0.12)', tension: 0.3, fill: true, pointRadius: 3 },
+            { label: 'Chronological Age', data: allBioAgePanels.map(p => p.age_at_draw), borderColor: '#C9A84C', borderDash: [4, 4], tension: 0, pointRadius: 2, fill: false },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, labels: { font: { size: 11 } } } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
+      });
+
+      const tbody = document.getElementById('bioage-tbody');
+      tbody.innerHTML = '';
+      [...allBioAgePanels].reverse().forEach(p => {
+        const tr = document.createElement('tr');
+        const dateStr = new Date(p.test_date + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+        const deltaStr = p.phenoage_delta != null ? (p.phenoage_delta > 0 ? '+' : '') + p.phenoage_delta.toFixed(1) : '—';
+        tr.innerHTML = `<td>${dateStr}</td><td>${p.phenoage != null ? p.phenoage.toFixed(1) : '—'}</td><td>${p.age_at_draw != null ? p.age_at_draw.toFixed(1) : '—'}</td><td>${deltaStr}</td><td class="row-actions"><button class="btn-quiet" data-action="edit" data-id="${p.id}">Edit</button> <button class="btn-quiet" data-action="delete" data-id="${p.id}">Delete</button></td>`;
+        tbody.appendChild(tr);
+      });
+      tbody.querySelectorAll('button[data-action="delete"]').forEach(b => b.addEventListener('click', async () => {
+        await supabaseClient.from('phenoage_panels').delete().eq('id', b.dataset.id);
+        loadBioAge();
+      }));
+      tbody.querySelectorAll('button[data-action="edit"]').forEach(b => b.addEventListener('click', () => {
+        const entry = allBioAgePanels.find(p => p.id === b.dataset.id);
+        startBioAgeEdit(entry);
+      }));
+
+      updateBioAgeBanner(latest);
+    }
+
+    // Persistent card above tab-nav — compact glance state, full detail lives in the tab
+    function updateBioAgeBanner(latest) {
+      const title = document.getElementById('bioage-banner-title');
+      const sub = document.getElementById('bioage-banner-sub');
+      const delta = document.getElementById('bioage-banner-delta');
+      if (!latest) {
+        title.textContent = 'Get Your Biological Age';
+        sub.textContent = 'Log your first blood panel to find out';
+        delta.style.display = 'none';
+        return;
+      }
+      title.textContent = `Biological Age: ${latest.phenoage.toFixed(1)}`;
+      sub.textContent = `Chronological age ${Math.round(latest.age_at_draw)}`;
+      const d = latest.phenoage_delta;
+      delta.style.display = 'inline-block';
+      if (d < -0.5) { delta.textContent = `${Math.abs(d).toFixed(1)} yrs younger`; delta.className = 'bioage-banner-delta younger'; }
+      else if (d > 0.5) { delta.textContent = `${d.toFixed(1)} yrs older`; delta.className = 'bioage-banner-delta older'; }
+      else { delta.textContent = 'On track'; delta.className = 'bioage-banner-delta same'; }
+    }
+
+    document.getElementById('bioage-banner').addEventListener('click', () => {
+      const tabBtn = document.querySelector('[data-section="bioage-section"]');
+      if (tabBtn) tabBtn.click();
+    });
+
+    function startBioAgeEdit(entry) {
+      bioAgeEditingId = entry.id;
+      document.getElementById('bioage-albumin').value = entry.albumin;
+      document.getElementById('bioage-creatinine').value = entry.creatinine;
+      document.getElementById('bioage-glucose').value = entry.glucose;
+      document.getElementById('bioage-crp').value = entry.crp;
+      document.getElementById('bioage-lymphocyte').value = entry.lymphocyte_pct;
+      document.getElementById('bioage-mcv').value = entry.mcv;
+      document.getElementById('bioage-rdw').value = entry.rdw;
+      document.getElementById('bioage-alp').value = entry.alp;
+      document.getElementById('bioage-wbc').value = entry.wbc;
+      document.getElementById('bioage-date').value = entry.test_date;
+      document.getElementById('bioage-form-title').textContent = 'Edit Lab Panel';
+      document.getElementById('bioage-save-btn').textContent = 'Update Panel';
+      document.getElementById('bioage-cancel-edit-btn').style.display = 'inline-block';
+      document.getElementById('bioage-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetBioAgeForm() {
+      bioAgeEditingId = null;
+      document.getElementById('bioage-form').reset();
+      document.getElementById('bioage-date').valueAsDate = new Date();
+      document.getElementById('bioage-form-title').textContent = 'Add Lab Panel';
+      document.getElementById('bioage-save-btn').textContent = 'Add Panel';
+      document.getElementById('bioage-cancel-edit-btn').style.display = 'none';
+    }
+
+    document.getElementById('bioage-cancel-edit-btn').addEventListener('click', resetBioAgeForm);
+
+    document.getElementById('bioage-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = document.getElementById('bioage-msg');
+      const btn = document.getElementById('bioage-save-btn');
+
+      // DOB gate (Option 1, agreed): block submission entirely if DOB is missing,
+      // rather than saving and leaving the calculation pending.
+      if (!profile.date_of_birth) {
+        msg.textContent = 'Please add your date of birth in Account before logging a lab panel.';
+        msg.className = 'msg show error';
+        return;
+      }
+
+      const payload = {
+        albumin: parseFloat(document.getElementById('bioage-albumin').value),
+        creatinine: parseFloat(document.getElementById('bioage-creatinine').value),
+        glucose: parseFloat(document.getElementById('bioage-glucose').value),
+        crp: parseFloat(document.getElementById('bioage-crp').value),
+        lymphocyte_pct: parseFloat(document.getElementById('bioage-lymphocyte').value),
+        mcv: parseFloat(document.getElementById('bioage-mcv').value),
+        rdw: parseFloat(document.getElementById('bioage-rdw').value),
+        alp: parseFloat(document.getElementById('bioage-alp').value),
+        wbc: parseFloat(document.getElementById('bioage-wbc').value),
+        test_date: document.getElementById('bioage-date').value,
+      };
+      if (Object.values(payload).some(v => v === '' || (typeof v === 'number' && isNaN(v)))) return;
+
+      btn.disabled = true; btn.textContent = bioAgeEditingId ? 'Updating…' : 'Calculating…';
+      let error;
+      if (bioAgeEditingId) {
+        ({ error } = await supabaseClient.from('phenoage_panels').update(payload).eq('id', bioAgeEditingId));
+      } else {
+        ({ error } = await supabaseClient.from('phenoage_panels').insert({ ...payload, patient_id: currentUser.id }));
+      }
+      btn.disabled = false;
+
+      if (error) {
+        msg.textContent = error.message; msg.className = 'msg show error';
+        btn.textContent = bioAgeEditingId ? 'Update Panel' : 'Add Panel';
+      } else {
+        msg.textContent = bioAgeEditingId ? 'Panel updated.' : 'Panel added — your biological age has been calculated.';
+        msg.className = 'msg show success';
+        resetBioAgeForm();
+        loadBioAge();
+      }
+    });
 
     // ── Medications ──
     // ── Body Composition & Fitness (editable by patient and clinician) ──
