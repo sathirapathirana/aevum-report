@@ -51,6 +51,11 @@
 
     /* CATEGORIES */
     .categories-section{background:var(--cream-dark);padding:40px 24px;}
+    .cat-101-banner{width:100%;background:var(--sage)!important;border-color:var(--sage)!important;margin-top:16px;padding:18px 20px!important;}
+    .cat-101-banner .cat-btn-name{color:var(--white)!important;font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;}
+    .cat-101-banner .cat-btn-count{color:rgba(255,255,255,0.65)!important;}
+    .cat-101-banner:hover{background:var(--sage-deep)!important;}
+    .cat-101-banner.active{background:var(--gold)!important;border-color:var(--gold)!important;}
     .cat-filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;}
     .cat-filter-btn{background:var(--white);border:1px solid var(--line);padding:14px 16px;cursor:pointer;text-align:left;transition:all 0.2s;display:flex;align-items:center;gap:10px;}
     .cat-filter-btn:hover{border-color:var(--sage-light);background:var(--sage-wash);}
@@ -183,6 +188,13 @@
   <!-- CATEGORY FILTER -->
   <section class="categories-section" id="categories">
     <p class="section-label">Browse by Topic</p>
+    <button class="cat-filter-btn cat-101-banner" data-cat="101" onclick="filterCat('101', this)">
+      <span class="cat-btn-icon">✦</span>
+      <span class="cat-btn-text">
+        <span class="cat-btn-name">New here? Start with Longevity 101</span>
+        <span class="cat-btn-count live" id="count-101">4 articles</span>
+      </span>
+    </button>
     <div class="cat-filter-grid">
       <button class="cat-filter-btn" data-cat="sleep" onclick="filterCat('sleep', this)">
         <span class="cat-btn-icon">😴</span>
@@ -201,7 +213,7 @@
       <button class="cat-filter-btn" data-cat="movement" onclick="filterCat('movement', this)">
         <span class="cat-btn-icon">🏃</span>
         <span class="cat-btn-text">
-          <span class="cat-btn-name">Movement</span>
+          <span class="cat-btn-name">Movement & Fitness</span>
           <span class="cat-btn-count live" id="count-movement">1 article</span>
         </span>
       </button>
@@ -222,15 +234,22 @@
       <button class="cat-filter-btn" data-cat="stress" onclick="filterCat('stress', this)">
         <span class="cat-btn-icon">🧘</span>
         <span class="cat-btn-text">
-          <span class="cat-btn-name">Stress & Hormones</span>
+          <span class="cat-btn-name">Stress & Mental Wellbeing</span>
           <span class="cat-btn-count" id="count-stress">Coming soon</span>
         </span>
       </button>
       <button class="cat-filter-btn" data-cat="cardio" onclick="filterCat('cardio', this)">
         <span class="cat-btn-icon">💓</span>
         <span class="cat-btn-text">
-          <span class="cat-btn-name">Cardiovascular</span>
+          <span class="cat-btn-name">Cardiovascular & Metabolic</span>
           <span class="cat-btn-count" id="count-cardio">Coming soon</span>
+        </span>
+      </button>
+      <button class="cat-filter-btn" data-cat="hormones" onclick="filterCat('hormones', this)">
+        <span class="cat-btn-icon">⚖️</span>
+        <span class="cat-btn-text">
+          <span class="cat-btn-name">Hormones & Reproductive Health</span>
+          <span class="cat-btn-count" id="count-hormones">Coming soon</span>
         </span>
       </button>
       <button class="cat-filter-btn" data-cat="science" onclick="filterCat('science', this)">
@@ -289,6 +308,38 @@
   // live: true  → shows "Read Article" and links to the file
   // live: false → shows "Coming Soon" badge, not clickable
   const ARTICLES = [
+    {
+      cat: "101",
+      catLabel: "Longevity 101",
+      title: "What is longevity medicine? A plain-language introduction",
+      excerpt: "Longevity medicine isn't about looking younger or living forever — it's about extending the years you spend in good health, not just the years you're alive. Here's what that actually means.",
+      url: "article-what-is-longevity-medicine.html",
+      live: true
+    },
+    {
+      cat: "101",
+      catLabel: "Longevity 101",
+      title: "Biological age vs. chronological age: what's the difference?",
+      excerpt: "Your birth certificate gives you one number. Your body may be running faster or slower than that — and unlike your calendar age, your biological age is at least partly within your control.",
+      url: "article-biological-age.html",
+      live: true
+    },
+    {
+      cat: "101",
+      catLabel: "Longevity 101",
+      title: "What to expect from a longevity doctor (and how it's different)",
+      excerpt: "A first visit with a longevity doctor doesn't look like a typical check-up. Here's what actually happens — from intake to an ongoing, tracked plan built around your own data.",
+      url: "article-what-to-expect.html",
+      live: true
+    },
+    {
+      cat: "101",
+      catLabel: "Longevity 101",
+      title: "The 8 domains of longevity, explained",
+      excerpt: "Your Aevum Protocol assessment covers 8 core domains of longevity. What each one measures, and why they matter together rather than in isolation.",
+      url: "article-8-domains.html",
+      live: true
+    },
     {
       cat: "sleep",
       catLabel: "Sleep & Recovery",
@@ -368,7 +419,7 @@
 
   // ── UPDATE CATEGORY COUNTS ───────────────────────────────────
   function updateCategoryCounts() {
-    const cats = ['sleep','nutrition','movement','skin','cognitive','stress','cardio','science'];
+    const cats = ['101','sleep','nutrition','movement','skin','cognitive','stress','cardio','hormones','science'];
     cats.forEach(cat => {
       const liveCount = ARTICLES.filter(a => a.cat === cat && a.live).length;
       const el = document.getElementById('count-' + cat);
