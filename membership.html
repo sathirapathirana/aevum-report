@@ -52,8 +52,11 @@
     .tier-includes li:last-child{border-bottom:none;}
     .tier-includes li::before{content:'✓';position:absolute;left:0;color:var(--sage);font-size:11px;}
     .tier-price-row{padding-top:24px;margin-top:24px;border-top:1px solid var(--line);}
+    .tier-price-original{font-size:14px;color:var(--mid);text-decoration:line-through;margin-bottom:2px;}
     .tier-price{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--charcoal);margin-bottom:4px;}
     .tier-price span{font-family:'Jost',sans-serif;font-size:11px;color:var(--mid);letter-spacing:0.05em;}
+    .tier-discount-badge{display:inline-block;background:var(--gold);color:var(--white);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;padding:5px 10px;margin-bottom:4px;}
+    .tier-limited{font-size:10.5px;color:var(--gold);letter-spacing:0.05em;margin-bottom:14px;font-style:italic;}
     .tier-save{font-size:11px;color:var(--sage-deep);margin-bottom:16px;}
     .tier-note{font-size:11px;color:var(--mid);margin-bottom:16px;line-height:1.5;}
     .tier-free-tag{display:inline-block;background:var(--sage-wash);color:var(--sage-deep);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:6px 12px;margin-bottom:20px;}
@@ -222,7 +225,10 @@
             <li>5% discount on all Aevum skin care packs</li>
           </ul>
           <div class="tier-price-row">
+            <span class="tier-discount-badge">50% Off</span>
+            <div class="tier-price-original">LKR 2,000 / month</div>
             <div class="tier-price">LKR 1,000 <span>/ month</span></div>
+            <p class="tier-limited">Limited time offer</p>
             <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20join%20the%20Community%20Membership%20%28LKR%201%2C000%20monthly%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Join the Community</a>
           </div>
         </div>
@@ -244,8 +250,11 @@
             <li>Everything in Community Membership — WhatsApp community, Library content, 5% skin pack discount</li>
           </ul>
           <div class="tier-price-row">
+            <span class="tier-discount-badge">50% Off</span>
+            <div class="tier-price-original">LKR 8,000 / month</div>
             <div class="tier-price">LKR 4,000 <span>/ month</span></div>
             <div class="tier-note">(LKR 12,000 billed as one payment for your 3-month cycle)</div>
+            <p class="tier-limited">Limited time offer</p>
             <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20book%20my%20first%20visit%20for%20the%20Starter%20Membership%20%28LKR%2012%2C000%20/%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Book Your First Visit</a>
           </div>
         </div>
@@ -253,7 +262,7 @@
 
       <!-- LONGEVITY -->
       <div class="tier-card featured">
-        <div class="tier-badge">Best Value</div>
+        <div class="tier-badge">Best Value · 50% Off</div>
         <div class="tier-header">
           <p class="tier-tag">Subscription · Every 3 Months</p>
           <h3 class="tier-name">Longevity Membership</h3>
@@ -266,8 +275,10 @@
             <li>Continuity of care with the same Longevity Doctor</li>
           </ul>
           <div class="tier-price-row">
+            <div class="tier-price-original">LKR 20,000 / every 3 months</div>
             <div class="tier-price">LKR 10,000 <span>/ every 3 months</span></div>
             <div class="tier-save">You save LKR 2,000 per cycle</div>
+            <p class="tier-limited">Limited time offer</p>
             <a href="https://wa.me/94771881842?text=Hi%20Aevum%2C%20I%27d%20like%20to%20start%20the%20Longevity%20Membership%20%28LKR%2010%2C000%20every%203%20months%29.%20Please%20let%20me%20know%20the%20next%20steps." class="btn-sage" target="_blank">Start Your Membership</a>
           </div>
         </div>
