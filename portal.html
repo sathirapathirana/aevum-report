@@ -112,6 +112,17 @@
     .grid-4{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 24px;}
     @media(min-width:700px){.grid-4{grid-template-columns:repeat(5,1fr);}}
 
+    /* ── Reference range gauge ── */
+    .range-gauge{margin:14px 0 4px;padding:14px 16px;background:var(--cream);border:1px solid var(--line);}
+    .range-gauge-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+    .range-gauge-status{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+    .range-gauge-value{font-size:13px;color:var(--charcoal);}
+    .range-gauge-track{position:relative;height:6px;background:var(--line);border-radius:3px;overflow:visible;}
+    .range-gauge-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;opacity:0.35;}
+    .range-gauge-marker{position:absolute;top:-3px;width:2px;height:12px;background:var(--charcoal);transform:translateX(-1px);}
+    .range-gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--mid);margin-top:5px;}
+    .range-gauge-note{font-size:10px;color:var(--mid);margin-top:6px;line-height:1.5;}
+
     .note-item{padding:16px 0;border-bottom:1px solid var(--line);}
     .note-item:last-child{border-bottom:none;}
     .note-date{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sage);margin-bottom:6px;}
@@ -294,6 +305,7 @@
           <h2 class="panel-title">Your Trends</h2>
           <div class="tabs" id="metric-tabs"></div>
           <div class="chart-wrap"><canvas id="trend-chart"></canvas></div>
+          <div id="range-gauge-measurements"></div>
           <p class="empty-state" id="empty-state" style="display:none;">No entries yet for this measurement.</p>
         </div>
       </div>
@@ -331,6 +343,7 @@
         <div class="tabs" id="bw-test-list"></div>
         <div id="bw-detail-wrap" style="display:none;">
           <div class="chart-wrap"><canvas id="bw-chart"></canvas></div>
+          <div id="range-gauge-bw"></div>
           <table class="data-table" id="bw-table" style="margin-top:20px;">
             <thead><tr><th>Date</th><th>Value</th><th></th></tr></thead>
             <tbody id="bw-tbody"></tbody>
@@ -371,6 +384,7 @@
         <div class="tabs" id="bodycomp-test-list"></div>
         <div id="bodycomp-detail-wrap" style="display:none;">
           <div class="chart-wrap"><canvas id="bodycomp-chart"></canvas></div>
+          <div id="range-gauge-bodycomp"></div>
           <table class="data-table" id="bodycomp-table" style="margin-top:20px;">
             <thead><tr><th>Date</th><th>Value</th><th></th></tr></thead>
             <tbody id="bodycomp-tbody"></tbody>
@@ -1001,9 +1015,81 @@
       });
     }
 
+    // ── Reference Ranges (gauge display) ──
+    // Read-only lookup against the reference_ranges table — no
+    // calculation, just fetch-once-and-match. Skips Estradiol
+    // entirely (per decision: needs menopause status to be
+    // meaningful, not built). Gauge silently omits itself whenever
+    // there's no matching row, no DOB, or no sex on file — never
+    // blocks the underlying value from displaying.
+    let referenceRangesCache = null;
+
+    async function loadReferenceRanges() {
+      if (referenceRangesCache) return referenceRangesCache;
+      const { data } = await supabaseClient.from('reference_ranges').select('*');
+      referenceRangesCache = (data || []).filter(r => r.parameter_key !== 'Estradiol');
+      return referenceRangesCache;
+    }
+
+    function ageFromDob(dob) {
+      if (!dob) return null;
+      const ms = new Date() - new Date(dob + 'T00:00:00');
+      return ms / (1000 * 60 * 60 * 24 * 365.25);
+    }
+
+    function matchReferenceRange(ranges, sourceTab, parameterKey, sex, age) {
+      const candidates = ranges.filter(r =>
+        r.source_tab === sourceTab && r.parameter_key === parameterKey &&
+        (r.sex === null || r.sex === sex) &&
+        (r.age_min == null || age == null || age >= r.age_min) &&
+        (r.age_max == null || age == null || age <= r.age_max)
+      );
+      if (!candidates.length) return null;
+      // Prefer the most specific match: sex-matched over sex-agnostic,
+      // age-banded over age-agnostic.
+      candidates.sort((a, b) => {
+        const scoreA = (a.sex ? 2 : 0) + (a.age_min != null || a.age_max != null ? 1 : 0);
+        const scoreB = (b.sex ? 2 : 0) + (b.age_min != null || b.age_max != null ? 1 : 0);
+        return scoreB - scoreA;
+      });
+      return candidates[0];
+    }
+
+    function renderRangeGaugeHtml(value, range) {
+      if (!range || range.low == null || range.high == null || value == null || isNaN(value)) return '';
+      const lo = range.low, hi = range.high;
+      const span = (hi - lo) || 1;
+      const pct = Math.max(0, Math.min(100, ((value - lo) / span) * 100));
+      const outOfRange = value < lo || value > hi;
+      const status = value < lo ? 'Low' : (value > hi ? 'High' : 'Normal');
+      const color = outOfRange ? 'var(--attention)' : 'var(--sage-deep)';
+      // Notes are deliberately NOT shown here — that field carries
+      // internal clinical caveats (e.g. "REVIEW: verify against your
+      // lab's assay") meant for clinicians, not patients. See
+      // clinician.html's version of this function, which does show them.
+      return `<div class="range-gauge">
+        <div class="range-gauge-head"><span class="range-gauge-status" style="color:${color};">${status}</span><span class="range-gauge-value">${value} ${range.unit}</span></div>
+        <div class="range-gauge-track"><div class="range-gauge-fill" style="width:${pct}%;background:${color};"></div><div class="range-gauge-marker" style="left:${pct}%;"></div></div>
+        <div class="range-gauge-labels"><span>${lo}</span><span>${hi}</span></div>
+      </div>`;
+    }
+
+    async function updateRangeGauge(slotId, sourceTab, parameterKey, latestValue) {
+      const slot = document.getElementById(slotId);
+      if (!slot) return;
+      if (latestValue == null || isNaN(latestValue) || !profile || !profile.date_of_birth || !profile.gender) {
+        slot.innerHTML = '';
+        return;
+      }
+      const ranges = await loadReferenceRanges();
+      const age = ageFromDob(profile.date_of_birth);
+      const range = matchReferenceRange(ranges, sourceTab, parameterKey, profile.gender, age);
+      slot.innerHTML = renderRangeGaugeHtml(latestValue, range);
+    }
+
     async function loadChart(metric) {
-      if (metric === 'bmi') return loadComputedBmiChart();
-      if (metric === 'whr') return loadComputedWhrChart();
+      if (metric === 'bmi') { document.getElementById('range-gauge-measurements').innerHTML = ''; return loadComputedBmiChart(); }
+      if (metric === 'whr') { document.getElementById('range-gauge-measurements').innerHTML = ''; return loadComputedWhrChart(); }
 
       const { data, error } = await supabaseClient.from('measurements').select('value, recorded_at')
         .eq('patient_id', currentUser.id).eq('metric', metric).order('recorded_at', { ascending: true });
@@ -1013,6 +1099,8 @@
       if (error) { console.error(error); return; }
 
       renderTrendChart(data, METRIC_LABELS[metric], emptyState, canvas);
+      const latest = data && data.length ? data[data.length - 1].value : null;
+      updateRangeGauge('range-gauge-measurements', 'measurements', metric, latest);
     }
 
     function renderTrendChart(data, label, emptyState, canvas) {
@@ -1123,12 +1211,24 @@
 
     document.getElementById('bw-test-select').addEventListener('change', (e) => {
       const custom = document.getElementById('bw-test-custom');
+      const unitSelect = document.getElementById('bw-unit-select');
       if (e.target.value === '__other__') {
         custom.style.display = 'block'; custom.required = true;
+        unitSelect.disabled = false;
       } else {
         custom.style.display = 'none'; custom.required = false;
         const defaultUnit = COMMON_TESTS[e.target.value];
-        if (defaultUnit) document.getElementById('bw-unit-select').value = defaultUnit;
+        if (defaultUnit) {
+          unitSelect.value = defaultUnit;
+          // Lock the unit — reference ranges for this test are
+          // calibrated to one specific unit, so free unit choice
+          // is disabled to avoid a mismatched-unit reading being
+          // judged against the wrong range.
+          unitSelect.disabled = true;
+          document.getElementById('bw-unit-custom').style.display = 'none';
+        } else {
+          unitSelect.disabled = false;
+        }
       }
     });
 
@@ -1197,6 +1297,9 @@
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
 
+      const bwLatest = entries.length ? entries[entries.length - 1].value : null;
+      updateRangeGauge('range-gauge-bw', 'blood_work', activeBwTest, bwLatest);
+
       const tbody = document.getElementById('bw-tbody');
       tbody.innerHTML = '';
       [...entries].reverse().forEach(r => {
@@ -1232,6 +1335,7 @@
       } else {
         unitSelect.value = '__other__'; unitCustom.style.display = 'block'; unitCustom.value = entry.unit || '';
       }
+      unitSelect.disabled = COMMON_TESTS.hasOwnProperty(entry.test_name);
       document.getElementById('bw-value').value = entry.value;
       document.getElementById('bw-date').value = entry.test_date;
 
@@ -1246,6 +1350,8 @@
       document.getElementById('bloodwork-form').reset();
       document.getElementById('bw-test-custom').style.display = 'none';
       document.getElementById('bw-unit-custom').style.display = 'none';
+      document.getElementById('bw-unit-select').disabled = false;
+      document.getElementById('bw-test-select').dispatchEvent(new Event('change'));
       document.getElementById('bw-date').valueAsDate = new Date();
       document.getElementById('bw-form-title').textContent = 'Log a Result';
       document.getElementById('bw-save-btn').textContent = 'Add Result';
@@ -1504,12 +1610,20 @@
 
     document.getElementById('bodycomp-test-select').addEventListener('change', (e) => {
       const custom = document.getElementById('bodycomp-test-custom');
+      const unitSelect = document.getElementById('bodycomp-unit-select');
       if (e.target.value === '__other__') {
         custom.style.display = 'block'; custom.required = true;
+        unitSelect.disabled = false;
       } else {
         custom.style.display = 'none'; custom.required = false;
         const defaultUnit = COMMON_BODYCOMP_TESTS[e.target.value];
-        if (defaultUnit) document.getElementById('bodycomp-unit-select').value = defaultUnit;
+        if (defaultUnit) {
+          unitSelect.value = defaultUnit;
+          unitSelect.disabled = true;
+          document.getElementById('bodycomp-unit-custom').style.display = 'none';
+        } else {
+          unitSelect.disabled = false;
+        }
       }
     });
 
@@ -1576,6 +1690,9 @@
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
 
+      const bodyCompLatest = entries.length ? entries[entries.length - 1].value : null;
+      updateRangeGauge('range-gauge-bodycomp', 'body_composition', activeBodyCompTest, bodyCompLatest);
+
       const tbody = document.getElementById('bodycomp-tbody');
       tbody.innerHTML = '';
       [...entries].reverse().forEach(r => {
@@ -1611,6 +1728,7 @@
       } else {
         unitSelect.value = '__other__'; unitCustom.style.display = 'block'; unitCustom.value = entry.unit || '';
       }
+      unitSelect.disabled = COMMON_BODYCOMP_TESTS.hasOwnProperty(entry.test_name);
       document.getElementById('bodycomp-value').value = entry.value;
       document.getElementById('bodycomp-date').value = entry.test_date;
 
@@ -1625,6 +1743,8 @@
       document.getElementById('bodycomp-form').reset();
       document.getElementById('bodycomp-test-custom').style.display = 'none';
       document.getElementById('bodycomp-unit-custom').style.display = 'none';
+      document.getElementById('bodycomp-unit-select').disabled = false;
+      document.getElementById('bodycomp-test-select').dispatchEvent(new Event('change'));
       document.getElementById('bodycomp-date').valueAsDate = new Date();
       document.getElementById('bodycomp-form-title').textContent = 'Log a Result';
       document.getElementById('bodycomp-save-btn').textContent = 'Add Result';

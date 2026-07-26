@@ -64,6 +64,17 @@
     .visit-stat-label{font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
     .visit-stat-value{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--charcoal);}
     .bioage-hero-delta-badge{display:inline-block;margin-top:8px;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;}
+
+    /* ── Reference range gauge ── */
+    .range-gauge{margin:14px 0 4px;padding:14px 16px;background:var(--cream);border:1px solid var(--line);}
+    .range-gauge-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+    .range-gauge-status{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+    .range-gauge-value{font-size:13px;color:var(--charcoal);}
+    .range-gauge-track{position:relative;height:6px;background:var(--line);border-radius:3px;overflow:visible;}
+    .range-gauge-fill{position:absolute;left:0;top:0;height:100%;border-radius:3px;opacity:0.35;}
+    .range-gauge-marker{position:absolute;top:-3px;width:2px;height:12px;background:var(--charcoal);transform:translateX(-1px);}
+    .range-gauge-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--mid);margin-top:5px;}
+    .range-gauge-note{font-size:10px;color:var(--mid);margin-top:6px;line-height:1.5;}
     .note-item{padding:14px 0;border-bottom:1px solid var(--line);font-size:13px;}
     .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
     .tab-btn{background:var(--cream);border:1px solid var(--line);color:var(--mid);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;padding:8px 13px;cursor:pointer;transition:all 0.2s;}
@@ -649,6 +660,7 @@
           <h2 class="panel-title">Measurements</h2>
           <div class="tabs" id="cl-metric-tabs"></div>
           <div class="chart-wrap"><canvas id="cl-metric-chart"></canvas></div>
+          <div id="cl-range-gauge-measurements"></div>
           <p class="empty-detail" id="cl-metric-empty" style="display:none;padding:30px 0;">No measurements logged yet.</p>
         </div>
 
@@ -656,6 +668,7 @@
           <h2 class="panel-title">Blood Work</h2>
           <div class="tabs" id="cl-bw-tabs"></div>
           <div class="chart-wrap"><canvas id="cl-bw-chart"></canvas></div>
+          <div id="cl-range-gauge-bw"></div>
           <p class="empty-detail" id="cl-bw-empty" style="display:none;padding:30px 0;">No blood work logged yet.</p>
         </div>
 
@@ -681,6 +694,7 @@
           <div class="msg" id="cl-bodycomp-msg"></div>
           <div class="tabs" id="cl-bodycomp-tabs" style="margin-top:20px;"></div>
           <div class="chart-wrap"><canvas id="cl-bodycomp-chart"></canvas></div>
+          <div id="cl-range-gauge-bodycomp"></div>
           <p class="empty-detail" id="cl-bodycomp-empty" style="display:none;padding:30px 0;">No body composition data logged yet.</p>
         </div>
 
@@ -1041,6 +1055,69 @@
       drawClinicianMetricChart(patientId);
     }
 
+    // ── Reference Ranges (gauge display) — same logic as portal.html.
+    // Estradiol excluded (needs menopause status, not built).
+    let referenceRangesCache = null;
+
+    async function loadReferenceRanges() {
+      if (referenceRangesCache) return referenceRangesCache;
+      const { data } = await supabaseClient.from('reference_ranges').select('*');
+      referenceRangesCache = (data || []).filter(r => r.parameter_key !== 'Estradiol');
+      return referenceRangesCache;
+    }
+
+    function ageFromDob(dob) {
+      if (!dob) return null;
+      const ms = new Date() - new Date(dob + 'T00:00:00');
+      return ms / (1000 * 60 * 60 * 24 * 365.25);
+    }
+
+    function matchReferenceRange(ranges, sourceTab, parameterKey, sex, age) {
+      const candidates = ranges.filter(r =>
+        r.source_tab === sourceTab && r.parameter_key === parameterKey &&
+        (r.sex === null || r.sex === sex) &&
+        (r.age_min == null || age == null || age >= r.age_min) &&
+        (r.age_max == null || age == null || age <= r.age_max)
+      );
+      if (!candidates.length) return null;
+      candidates.sort((a, b) => {
+        const scoreA = (a.sex ? 2 : 0) + (a.age_min != null || a.age_max != null ? 1 : 0);
+        const scoreB = (b.sex ? 2 : 0) + (b.age_min != null || b.age_max != null ? 1 : 0);
+        return scoreB - scoreA;
+      });
+      return candidates[0];
+    }
+
+    function renderRangeGaugeHtml(value, range) {
+      if (!range || range.low == null || range.high == null || value == null || isNaN(value)) return '';
+      const lo = range.low, hi = range.high;
+      const span = (hi - lo) || 1;
+      const pct = Math.max(0, Math.min(100, ((value - lo) / span) * 100));
+      const outOfRange = value < lo || value > hi;
+      const status = value < lo ? 'Low' : (value > hi ? 'High' : 'Normal');
+      const color = outOfRange ? 'var(--attention)' : 'var(--sage-deep)';
+      const note = range.notes ? `<div class="range-gauge-note">${range.notes}</div>` : '';
+      return `<div class="range-gauge">
+        <div class="range-gauge-head"><span class="range-gauge-status" style="color:${color};">${status}</span><span class="range-gauge-value">${value} ${range.unit}</span></div>
+        <div class="range-gauge-track"><div class="range-gauge-fill" style="width:${pct}%;background:${color};"></div><div class="range-gauge-marker" style="left:${pct}%;"></div></div>
+        <div class="range-gauge-labels"><span>${lo}</span><span>${hi}</span></div>
+        ${note}
+      </div>`;
+    }
+
+    async function updateRangeGauge(slotId, sourceTab, parameterKey, latestValue, patientDob, patientSex) {
+      const slot = document.getElementById(slotId);
+      if (!slot) return;
+      if (latestValue == null || isNaN(latestValue) || !patientDob || !patientSex) {
+        slot.innerHTML = '';
+        return;
+      }
+      const ranges = await loadReferenceRanges();
+      const age = ageFromDob(patientDob);
+      const range = matchReferenceRange(ranges, sourceTab, parameterKey, patientSex, age);
+      slot.innerHTML = renderRangeGaugeHtml(latestValue, range);
+    }
+
     function drawClinicianMetricChart(patientId) {
       if (clActiveMetric === 'bmi') return drawClinicianBmiChart(patientId);
       if (clActiveMetric === 'whr') return drawClinicianWhrChart();
@@ -1060,12 +1137,18 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+
+      const clMetricLatest = entries.length ? entries[entries.length - 1].value : null;
+      const clMetricPatient = allPatients.find(p => p.id === patientId);
+      updateRangeGauge('cl-range-gauge-measurements', 'measurements', clActiveMetric, clMetricLatest,
+        clMetricPatient && clMetricPatient.date_of_birth, clMetricPatient && clMetricPatient.gender);
     }
 
     function drawClinicianComputedChart(label, points) {
       document.querySelectorAll('#cl-metric-tabs .tab-btn').forEach(b => b.classList.toggle('active', b.textContent === label));
       const canvas = document.getElementById('cl-metric-chart');
       if (clMetricChart) clMetricChart.destroy();
+      document.getElementById('cl-range-gauge-measurements').innerHTML = '';
       clMetricChart = new Chart(canvas, {
         type: 'line',
         data: { labels: points.map(p => p.recorded_at), datasets: [{
@@ -1140,6 +1223,12 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+
+      const clBwLatest = entries.length ? entries[entries.length - 1].value : null;
+      const clBwPatientId = entries.length ? entries[0].patient_id : null;
+      const clBwPatient = clBwPatientId ? allPatients.find(p => p.id === clBwPatientId) : null;
+      updateRangeGauge('cl-range-gauge-bw', 'blood_work', clActiveBwTest, clBwLatest,
+        clBwPatient && clBwPatient.date_of_birth, clBwPatient && clBwPatient.gender);
     }
 
     const COMMON_BODYCOMP_TESTS = {
@@ -1173,11 +1262,18 @@
         const custom = document.getElementById('cl-bodycomp-test-custom');
         custom.style.display = e.target.value === '__other__' ? 'block' : 'none';
         const defaultUnit = COMMON_BODYCOMP_TESTS[e.target.value];
-        if (defaultUnit) unitSelect.value = defaultUnit;
+        if (defaultUnit) {
+          unitSelect.value = defaultUnit;
+          unitSelect.disabled = true;
+          document.getElementById('cl-bodycomp-unit-custom').style.display = 'none';
+        } else {
+          unitSelect.disabled = false;
+        }
       });
       unitSelect.addEventListener('change', (e) => {
         document.getElementById('cl-bodycomp-unit-custom').style.display = e.target.value === '__other__' ? 'block' : 'none';
       });
+      testSelect.dispatchEvent(new Event('change'));
 
       document.getElementById('cl-bodycomp-save-btn').onclick = async () => {
         const btn = document.getElementById('cl-bodycomp-save-btn');
@@ -1241,6 +1337,12 @@
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
           scales: { x: { grid: { display: false } }, y: { grid: { color: '#D8D9D2' } } } },
       });
+
+      const clBodyCompLatest = entries.length ? entries[entries.length - 1].value : null;
+      const clBodyCompPatientId = entries.length ? entries[0].patient_id : null;
+      const clBodyCompPatient = clBodyCompPatientId ? allPatients.find(p => p.id === clBodyCompPatientId) : null;
+      updateRangeGauge('cl-range-gauge-bodycomp', 'body_composition', clActiveBodyCompTest, clBodyCompLatest,
+        clBodyCompPatient && clBodyCompPatient.date_of_birth, clBodyCompPatient && clBodyCompPatient.gender);
     }
 
     async function renderClinicianBioAge(patientId, patientDob) {
